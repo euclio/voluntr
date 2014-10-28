@@ -1,0 +1,17 @@
+<head>
+<% include ../partials/head %>
+</head>
+<body>
+  <% include ../partials/navbar %>
+  <div class="container">
+    <ul>
+      <% for (var i = 0; i < events.length; ++i) { %>
+        <li>
+          <h1>Event <%= i %></h1>
+          <p><%= events[i].description %></p>
+          <p>Starts: <%= events[i].startTime %>. Ends: <%= events[i].endTime %></p>
+        </li>
+      <% } %>
+    </ul>
+  </div>
+</body>
