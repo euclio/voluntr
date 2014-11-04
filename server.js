@@ -14,8 +14,12 @@ nconf.argv()
 var app = express();
 
 app.use('/static', express.static(__dirname + '/static'));
-app.use(bodyParser());
-app.use(session({ secret: nconf.get('VOLUNTR_SECRET') }));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(session({
+    saveUninitialized: true,
+    secret: nconf.get('VOLUNTR_SECRET'),
+    resave: false,
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 // Add user object to all templates automatically.
@@ -31,6 +35,7 @@ var connection = mysql.createConnection({
 connection.connect();
 
 passport.serializeUser(function(user, done) {
+    // TODO: Save user session to database?
     done(null, user);
 });
 
