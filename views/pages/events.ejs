@@ -4,12 +4,18 @@
 <body>
   <% include ../partials/navbar %>
   <div class="container">
-    <ul>
+    <h1>Your Events</h1>
+    <ul class="media-list">
       <% for (var i = 0; i < events.length; ++i) { %>
-        <li>
-          <h1>Event <%= i %></h1>
-          <p><%= events[i].description %></p>
-          <p>Starts: <%= events[i].startTime %>. Ends: <%= events[i].endTime %></p>
+        <li class="media">
+          <a class="pull-left" href="#">
+            <img class="media-object" src="http://placehold.it/64x64" alt="event photo">
+          </a>
+          <div class="media-body">
+            <h4 class="media-heading">Event <%= i %></h4>
+            <p><%= events[i].description %></p>
+            <small><%= moment(events[i].startTime).format('hh:mma, MMMM DD') %> &mdash; <%= moment(events[i].endTime).format('hh:mma, MMMM DD') %></small>
+          </div>
         </li>
       <% } %>
     </ul>

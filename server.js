@@ -8,6 +8,8 @@ var connection = mysql.createConnection({
 });
 connection.connect();
 
+var moment = require('moment');
+
 app.set('view engine', 'ejs');
 
 app.get('/', function(req, res) {
@@ -20,7 +22,7 @@ app.get('/profile', function(req, res) {
 
 app.get('/events', function(req, res) {
     connection.query('SELECT * FROM event', function(err, rows, fields) {
-        res.render('pages/events', { events : rows });
+        res.render('pages/events', { events: rows, moment: moment });
     });
 });
 
