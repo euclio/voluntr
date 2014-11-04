@@ -6,6 +6,14 @@ CREATE TABLE event (eventID INT NOT NULL AUTO_INCREMENT,
                     endTime DATETIME NOT NULL,
                     PRIMARY KEY (eventID));
 
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (userID INT NOT NULL AUTO_INCREMENT,
+                    name VARCHAR(50) NOT NULL,
+                    email VARCHAR(255) UNIQUE NOT NULL,
+                    password BINARY(64) NOT NULL,
+                    role ENUM('volunteer', 'coordinator'),
+                    PRIMARY KEY (userID));
+
 INSERT INTO event VALUES (0,
                           'This event is awesome.',
                           'Pomona College',

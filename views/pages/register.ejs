@@ -1,0 +1,47 @@
+<!doctype html>
+<head>
+  <% include ../partials/head %>
+</head>
+<body>
+  <% include ../partials/navbar %>
+  <div class="container">
+    <h1>Register for Voluntr</h1>
+    <form action="/register" method="post">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" name="name" class="form-control" id="name">
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" name="email" class="form-control" id="email">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" name="password" class="form-control" id="password">
+      </div>
+      <div class="form-group">
+        <label for="confirm">Confirm Password</label>
+        <input type="password" name="confirm" class="form-control" id="confirm">
+      </div>
+      <div class="radio">
+        <label>
+          <input type="radio" name="role" id="userTypeVolunteer" value="volunteer"
+          <% if (locals.role === 'volunteer') { %>
+              checked
+          <% } %>
+          >
+          Volunteer
+        </label>
+        <label>
+        <input type="radio" name="role" id="userTypeCoordinator" value="coordinator"
+          <% if (locals.role === 'coordinator') { %>
+            checked
+          <% } %>
+          >
+          Coordinator
+        </label>
+      </div>
+      <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+  </div>
+</body>
