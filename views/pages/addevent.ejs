@@ -1,0 +1,16 @@
+<head>
+<% include ../partials/head %>
+</head>
+<body>
+  <% include ../partials/navbar %>
+  <div class="container">
+	<h1>Add Event</h1>
+  	<form action="/events" method="post">
+    <input name="title" placeholder="Enter event title"><br>
+    <input name="description" placeholder="Enter event description"><br>
+    <input name="location" placeholder="Enter event location"><br>
+    <input name="startTime" placeholder="Enter event start time"><br>
+    <input name="endTime" placeholder="Enter event end time"><br>
+    <input type="submit">
+  	</form>
+  </div>
