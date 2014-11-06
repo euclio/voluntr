@@ -1,4 +1,4 @@
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcrypt-nodejs');
 var express = require('express');
 var bodyParser = require('body-parser');
 var moment = require('moment');
@@ -114,13 +114,19 @@ app.get('/register', function(req, res) {
 app.post('/register', function(req, res) {
     // Hash the password and store the user into the databse.
     // TODO: Check that the user doesn't already exist.
-    bcrypt.hash(req.body.password, 10, function(err, hash) {
-        var query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
-        connection.query(query, [req.body.name, req.body.email, hash, req.body.role], function(err, dbRes) {
-            if (err) {
-                console.log(err);
-            }
-            res.redirect('/profile');
+    bcrypt.genSalt(10, function(err, salt) {
+        bcrypt.hash(req.body.password, salt, null, function(err, hash) {
+            var query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
+            connection.query(query,
+                             [req.body.name,
+                              req.body.email,
+                              hash,
+                              req.body.role], function(err, dbRes) {
+                if (err) {
+                    throw err;
+                }
+                res.redirect('/profile');
+            });
         });
     });
 });

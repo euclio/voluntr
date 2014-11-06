@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS users;
 CREATE TABLE users (userID INT NOT NULL AUTO_INCREMENT,
                     name VARCHAR(50) NOT NULL,
                     email VARCHAR(255) UNIQUE NOT NULL,
-                    password BINARY(64) NOT NULL,
+                    password BINARY(60) NOT NULL,
                     role ENUM('volunteer', 'coordinator'),
                     PRIMARY KEY (userID));
 
