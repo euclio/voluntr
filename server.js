@@ -226,7 +226,6 @@ app.get('/register', function(req, res) {
 
 app.post('/register', function(req, res) {
     // Hash the password and store the user into the databse.
-    // TODO: Check that the user doesn't already exist.
     bcrypt.genSalt(10, function(err, salt) {
         bcrypt.hash(req.body.password, salt, null, function(err, hash) {
             var query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
@@ -236,7 +235,12 @@ app.post('/register', function(req, res) {
                               hash,
                               req.body.role], function(err, dbRes) {
                 if (err) {
-                    throw err;
+                    // The email address is already registered.
+                    if (err.code === 'ER_DUP_ENTRY') {
+                        res.redirect('/register');
+                    } else {
+                        throw err;
+                    }
                 }
                 res.redirect('/profile');
             });
