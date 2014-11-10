@@ -79,13 +79,16 @@ var bootstrapField = function (name, object) {
 };
 
 passport.serializeUser(function(user, done) {
-    // TODO: Save user session to database?
-    done(null, user);
+    done(null, user.userID);
 });
 
-passport.deserializeUser(function(user, done) {
-    done(null, user);
-})
+passport.deserializeUser(function(userID, done) {
+    connection.query('SELECT * FROM users WHERE userID = ?',
+                     [userID], function(err, rows, fields) {
+        if (err) { return done(err) }
+        return done(null, rows[0]);
+     });
+});
 
 passport.use(new LocalStrategy({
         usernameField: 'email',
@@ -120,23 +123,40 @@ passport.use(new LocalStrategy({
     }
 ));
 
+/*
+ * Middleware to mark a route that should require login.
+ */
+function requireLogin(req, res, next) {
+    if (req.user) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+}
+
 app.set('view engine', 'ejs');
 
 app.get('/', function(req, res) {
     res.render('pages/index');
 });
 
-app.get('/profile', function(req, res) {
-	res.render('pages/profile');
+app.get('/profile',
+        requireLogin,
+        function(req, res) {
+    res.render('pages/profile');
 });
 
-app.get('/events', function(req, res) {
+app.get('/events',
+        requireLogin,
+        function(req, res) {
     connection.query('SELECT * FROM event', function(err, rows, fields) {
         res.render('pages/events', { events: rows, moment: moment });
     });
 });
 
-app.get('/add', function(req, res) {
+app.get('/add',
+        requireLogin,
+        function(req, res) {
     res.render('pages/addevent', {
         form: add_event_form.toHTML(bootstrapField)
     });
