@@ -1,6 +1,7 @@
 var bcrypt = require('bcrypt-nodejs');
-var express = require('express');
 var bodyParser = require('body-parser');
+var express = require('express');
+var flash = require('express-flash');
 var moment = require('moment');
 var mysql = require('mysql');
 var nconf = require('nconf');
@@ -16,6 +17,7 @@ var app = express();
 
 app.use('/static', express.static(__dirname + '/static'));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(flash());
 app.use(session({
     saveUninitialized: true,
     secret: nconf.get('VOLUNTR_SECRET'),
@@ -23,6 +25,7 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
 // Add user object to all templates automatically.
 app.use(function(req, res, next) {
     res.locals.user = req.user;
@@ -237,11 +240,13 @@ app.post('/register', function(req, res) {
                 if (err) {
                     // The email address is already registered.
                     if (err.code === 'ER_DUP_ENTRY') {
-                        res.redirect('/register');
+                        req.flash('error', 'That email address is already registered.');
+                        return res.redirect('/register');
                     } else {
                         throw err;
                     }
                 }
+                req.flash('success', 'Successfully registered!');
                 res.redirect('/profile');
             });
         });
@@ -256,7 +261,7 @@ app.post('/login',
     passport.authenticate('local', {
         successRedirect: '/profile',
         failureRedirect: '/login',
-        failureFlash: false })
+        failureFlash: true })
 );
 
 app.get('/logout', function(req, res) {
