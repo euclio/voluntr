@@ -287,7 +287,7 @@ app.post('/register', function(req, res) {
                             // The email address is already registered.
                             if (err.code === 'ER_DUP_ENTRY') {
                                 req.flash('error', 'That email address is already registered.');
-                                return res.redirect('/register', {form: ret.formHTML});
+                                return res.redirect('/register');
                             } else {
                                 throw err;
                             }
