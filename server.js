@@ -61,14 +61,33 @@ var add_event_form = forms.create({
         errorAfterField: true,
         validators: [validators.maxlength(50)]
     })
-    /*
-    startDate: fields.date({
-        required: true,
-        widget: widgets.date(),
+});
+
+var register_form = forms.create({
+    name: fields.string({
+        required: validators.required('Name is required.'),
+        widget: widgets.text({ classes: ['input-with-feedback']}),
         errorAfterField: true,
-        validators: [validators.rangelength(10,10)]
+        validators: [validators.maxlength(50)]
+    }),
+    email: fields.email({
+        required: validators.required('Email is required.'),
+        widget: widgets.email({ classes: ['input-with-feedback']}),
+        errorAfterField: true,
+        validators: [validators.email(), validators.maxlength(255)]
+
+    }),
+    password: fields.password({
+        required: validators.required('Password is required.'),
+        widget: widgets.password({ classes: ['input-with-feedback']}),
+        errorAfterField: true
+    }),
+    confirm: fields.password({
+        required: validators.required('Must confirm password.'),
+        widget: widgets.password({ classes: ['input-with-feedback']}),
+        errorAfterField: true,
+        validators: [validators.matchField('password')]
     })
-    */
 });
 
 var bootstrapField = function (name, object) {
@@ -166,7 +185,7 @@ app.get('/add',
 });
 
 //returns true on success, false otherwise
-function handleFormData(req, res) {
+function handleAddEventFormData(req, res) {
     var ret = false;
     add_event_form.handle(req, {
         success: function (form) {
@@ -187,14 +206,14 @@ function handleFormData(req, res) {
 
 var DEFAULT_DATE = "2014-11-30"
 app.post('/add', function(req, res) {
-    var success = handleFormData(req, res);
+    var success = handleAddEventFormData(req, res);
     if (success) {
         var formatHours = function(hours, ampm) {
             var intHours = parseInt(hours)
             if (ampm == "PM") {
                 if (intHours != 12) {
                     intHours += 12
-                }    
+                }
             } else {
                 if (intHours == 12) {
                     intHours -= 12
@@ -208,10 +227,10 @@ app.post('/add', function(req, res) {
         }
         var startHours = formatHours(req.body.hours[0], req.body.ampm[0])
         var startTime = DEFAULT_DATE + " " + startHours + req.body.minutes[0] + ":00"
-        
+
         var endHours = formatHours(req.body.hours[1], req.body.ampm[1])
         var endTime = DEFAULT_DATE + " " + endHours + req.body.minutes[1]
-    
+
         var query = "INSERT INTO event (title, description, location, startTime, endTime) VALUES (?, ?, ?, ?, ?)"
         connection.query(query, [req.body.title, req.body.description, req.body.location, startTime, endTime], function(err, res) {
             if (err) {
@@ -224,33 +243,57 @@ app.post('/add', function(req, res) {
 });
 
 app.get('/register', function(req, res) {
-    res.render('pages/register', { role: req.query.role })
+    res.render('pages/register', { role: req.query.role, form: register_form.toHTML(bootstrapField) })
 });
 
 app.post('/register', function(req, res) {
-    // Hash the password and store the user into the databse.
-    bcrypt.genSalt(10, function(err, salt) {
-        bcrypt.hash(req.body.password, salt, null, function(err, hash) {
-            var query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
-            connection.query(query,
-                             [req.body.name,
-                              req.body.email,
-                              hash,
-                              req.body.role], function(err, dbRes) {
-                if (err) {
-                    // The email address is already registered.
-                    if (err.code === 'ER_DUP_ENTRY') {
-                        req.flash('error', 'That email address is already registered.');
-                        return res.redirect('/register');
-                    } else {
-                        throw err;
-                    }
-                }
-                req.flash('success', 'Successfully registered!');
-                res.redirect('/profile');
-            });
-        });
+    var success, formHTML;
+    register_form.handle(req, {
+        success: function (form) { 
+            success = true;
+            formHTML = form.toHTML();
+        },
+        error: function (form) {
+            success = false;
+            formHTML = form.toHTML();
+        },
+        empty: function (form) {
+            success = false;
+            formHTML = form.toHTML();
+        }
     });
+    if (success) {
+        if (req.body.role != undefined) {
+            // Hash the password and store the user into the databse.
+            bcrypt.genSalt(10, function(err, salt) {
+                bcrypt.hash(req.body.password, salt, null, function(err, hash) {
+                    var query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
+                    connection.query(query,
+                                     [req.body.name,
+                                      req.body.email,
+                                      hash,
+                                      req.body.role], function(err, dbRes) {
+                        if (err) {
+                            // The email address is already registered.
+                            if (err.code === 'ER_DUP_ENTRY') {
+                                req.flash('error', 'That email address is already registered.');
+                                return res.redirect('/register', {form: ret.formHTML});
+                            } else {
+                                throw err;
+                            }
+                        }
+                        req.flash('success', 'Successfully registered!');
+                        res.redirect('/profile');
+                    });
+                });
+            });
+        } else {
+            var radioError = "<div class='error_msg'><p>Must select volunteer or coordinator.</p></div>";
+            res.render('pages/register', {form: formHTML, radioError: radioError});
+        }
+    } else {
+        res.render('pages/register', {form: formHTML})
+    }
 });
 
 app.get('/login', function(req, res) {
