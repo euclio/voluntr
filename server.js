@@ -36,7 +36,14 @@ var connection = mysql.createConnection({
     host: 'localhost',
     database: 'test'
 });
-connection.connect();
+
+connection.connect(function(err) {
+    if (err.code === 'ECONNREFUSED') {
+        console.log('ERROR: Database connection refused. Is mysql running?');
+    }
+    throw err;
+});
+
 
 var fields = forms.fields,
     validators = forms.validators,
