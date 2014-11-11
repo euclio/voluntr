@@ -38,10 +38,13 @@ var connection = mysql.createConnection({
 });
 
 connection.connect(function(err) {
-    if (err.code === 'ECONNREFUSED') {
-        console.log('ERROR: Database connection refused. Is mysql running?');
+    if (err) {
+        if (err.code === 'ECONNREFUSED') {
+            console.log(
+                'ERROR: Database connection refused. Is mysql running?');
+        }
+        throw err;
     }
-    throw err;
 });
 
 
