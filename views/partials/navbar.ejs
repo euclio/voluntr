@@ -20,7 +20,7 @@
             </div>
           </li>
         <% } else { %>
-          <li><p class="navbar-text">Logged in as <%= user.name %></p></li>
+            <li><p class="navbar-text">Logged in as <%= user.name %> <strong>(<%= user.role %>)</strong></p></li>
           <li>
             <div>
               <a href="/logout" class="btn btn-default navbar-btn">Logout</a>
