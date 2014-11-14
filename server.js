@@ -194,29 +194,24 @@ app.get('/add',
     });
 });
 
-//returns true on success, false otherwise
-function handleAddEventFormData(req, res) {
-    var ret = false;
-    add_event_form.handle(req, {
-        success: function (form) {
-            ret = true;
-            res.render('pages/addevent', {
-                form: form.toHTML()
-            });
-        },
-        error: function (form) {
-            res.render('pages/addevent', {
-                form: form.toHTML()
-            });
-        },
-        empty: function (form) { }
-    });
-    return ret;
-}
-
 var DEFAULT_DATE = "2014-11-30"
 app.post('/add', function(req, res) {
-    var success = handleAddEventFormData(req, res);
+    var success, formHTML;
+    add_event_form.handle(req, {
+        success: function (form) {
+            success = true;
+            formHTML = form.toHTML();
+        },
+        error: function (form) {
+            success = false;
+            formHTML = form.toHTML();
+        },
+        empty: function (form) {
+            success = false;
+            formHTML = form.toHTML();
+        }
+    });
+
     if (success) {
         var formatHours = function(hours, ampm) {
             var intHours = parseInt(hours)
@@ -234,7 +229,7 @@ app.post('/add', function(req, res) {
                 hours = "0" + hours
             }
             return hours
-        }
+        };
         var startHours = formatHours(req.body.hours[0], req.body.ampm[0])
         var startTime = DEFAULT_DATE + " " + startHours + req.body.minutes[0] + ":00"
 
@@ -244,11 +239,21 @@ app.post('/add', function(req, res) {
         var query = "INSERT INTO event (title, description, location, startTime, endTime) VALUES (?, ?, ?, ?, ?)"
         connection.query(query, [req.body.title, req.body.description, req.body.location, startTime, endTime], function(err, res) {
             if (err) {
-                console.log(err)
+                req.flash('error', 'Error inserting into database. Try again.');
+                res.redirect('pages/addevent');
             } else {
-                console.log("success")
+                req.flash('success', 'Event successfully added.');
+                //possibly redirect to profile here?
+                res.render('pages/addevent', {
+                    form: add_event_form.toHTML(bootstrapField)
+                });
             }
         })
+    } else {
+        req.flash('error', 'Invalid form data.');
+        res.render('pages/addevent', {
+            form: formHTML
+        });
     }
 });
 
@@ -298,10 +303,11 @@ app.post('/register', function(req, res) {
                 });
             });
         } else {
-            var radioError = "<div class='error_msg'><p>Must select volunteer or coordinator.</p></div>";
-            res.render('pages/register', {form: formHTML, radioError: radioError});
+            req.flash('error', 'Must select volunteer or coordinator.');
+            res.render('pages/register', {form: formHTML});
         }
     } else {
+        req.flash('error', 'Invalid form data.');
         res.render('pages/register', {form: formHTML})
     }
 });
