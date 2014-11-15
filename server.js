@@ -8,7 +8,8 @@ var nconf = require('nconf');
 var passport = require('passport')
   , LocalStrategy = require('passport-local').Strategy;
 var session = require('express-session');
-var forms = require('forms');
+
+var forms = require('./app/models/forms.js')
 
 nconf.argv()
      .env();
@@ -46,69 +47,6 @@ connection.connect(function(err) {
         throw err;
     }
 });
-
-
-var fields = forms.fields,
-    validators = forms.validators,
-    widgets = forms.widgets;
-
-var add_event_form = forms.create({
-    title: fields.string({
-        required: validators.required('Title is required.'),
-        widget: widgets.text({ classes: ['input-with-feedback'] }),
-        errorAfterField: true,
-        validators: [validators.maxlength(50)]
-    }),
-    description: fields.string({
-        required: validators.required('Description is required.'),
-        widget: widgets.textarea({rows:4}),
-        errorAfterField: true,
-        validators: [validators.maxlength(300)]
-    }),
-    location: fields.string({
-        required: validators.required('Location is required.'),
-        widget: widgets.text({ classes: ['input-with-feedback'] }),
-        errorAfterField: true,
-        validators: [validators.maxlength(50)]
-    })
-});
-
-var register_form = forms.create({
-    name: fields.string({
-        required: validators.required('Name is required.'),
-        widget: widgets.text({ classes: ['input-with-feedback']}),
-        errorAfterField: true,
-        validators: [validators.maxlength(50)]
-    }),
-    email: fields.email({
-        required: validators.required('Email is required.'),
-        widget: widgets.email({ classes: ['input-with-feedback']}),
-        errorAfterField: true,
-        validators: [validators.email(), validators.maxlength(255)]
-
-    }),
-    password: fields.password({
-        required: validators.required('Password is required.'),
-        widget: widgets.password({ classes: ['input-with-feedback']}),
-        errorAfterField: true
-    }),
-    confirm: fields.password({
-        required: validators.required('Must confirm password.'),
-        widget: widgets.password({ classes: ['input-with-feedback']}),
-        errorAfterField: true,
-        validators: [validators.matchField('password')]
-    })
-});
-
-var bootstrapField = function (name, object) {
-    object.widget.classes = object.widget.classes || [];
-    object.widget.classes.push('form-control');
-
-    var label = object.labelHTML(name);
-    var error = object.error ? '<div class="alert alert-error">' + object.error + '</div>' : '';
-    var widget = object.widget.toHTML(name, object);
-    return '<div class="form-group">' + label + widget + error + '</div>';
-};
 
 passport.serializeUser(function(user, done) {
     done(null, user.userID);
@@ -190,38 +128,28 @@ app.get('/add',
         requireLogin,
         function(req, res) {
     res.render('pages/addevent', {
-        form: add_event_form.toHTML(bootstrapField)
+        form: forms.renderForm(forms.addEventForm)
     });
 });
 
 var DEFAULT_DATE = "2014-11-30"
 app.post('/add', function(req, res) {
-    var success, formHTML;
-    add_event_form.handle(req, {
-        success: function (form) {
-            success = true;
-            formHTML = form.toHTML();
-        },
-        error: function (form) {
-            success = false;
-            formHTML = form.toHTML();
-        },
-        empty: function (form) {
-            success = false;
-            formHTML = form.toHTML();
-        }
-    });
-
-    if (success) {
-        var formatHours = function(hours, ampm) {
-            var intHours = parseInt(hours)
-            if (ampm == "PM") {
-                if (intHours != 12) {
-                    intHours += 12
+    forms.addEventForm.handle(req, {
+        success: function(form) {
+            var formatHours = function(hours, ampm) {
+                var intHours = parseInt(hours)
+                if (ampm == "PM") {
+                    if (intHours != 12) {
+                        intHours += 12
+                    }
+                } else {
+                    if (intHours == 12) {
+                        intHours -= 12
+                    }
                 }
-            } else {
-                if (intHours == 12) {
-                    intHours -= 12
+                hours = intHours.toString()
+                if (intHours < 10) {
+                    hours = "0" + hours
                 }
             }
             hours = intHours.toString()
@@ -258,27 +186,15 @@ app.post('/add', function(req, res) {
 });
 
 app.get('/register', function(req, res) {
-    res.render('pages/register', { role: req.query.role, form: register_form.toHTML(bootstrapField) })
+    res.render('pages/register', {
+        role: req.query.role,
+        form: forms.renderForm(forms.registerForm)
+    });
 });
 
 app.post('/register', function(req, res) {
-    var success, formHTML;
-    register_form.handle(req, {
-        success: function (form) { 
-            success = true;
-            formHTML = form.toHTML();
-        },
-        error: function (form) {
-            success = false;
-            formHTML = form.toHTML();
-        },
-        empty: function (form) {
-            success = false;
-            formHTML = form.toHTML();
-        }
-    });
-    if (success) {
-        if (req.body.role != undefined) {
+    forms.registerForm.handle(req, {
+        success: function (form) {
             // Hash the password and store the user into the databse.
             bcrypt.genSalt(10, function(err, salt) {
                 bcrypt.hash(req.body.password, salt, null, function(err, hash) {
@@ -302,6 +218,7 @@ app.post('/register', function(req, res) {
                     });
                 });
             });
+<<<<<<< HEAD
         } else {
             req.flash('error', 'Must select volunteer or coordinator.');
             res.render('pages/register', {form: formHTML});
@@ -310,6 +227,15 @@ app.post('/register', function(req, res) {
         req.flash('error', 'Invalid form data.');
         res.render('pages/register', {form: formHTML})
     }
+=======
+        },
+        other: function(form) {
+            res.render('pages/register', {
+                form: forms.renderForm(form)
+            });
+        }
+    });
+>>>>>>> refactor forms into own module
 });
 
 app.get('/login', function(req, res) {

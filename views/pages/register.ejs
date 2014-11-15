@@ -12,27 +12,7 @@
   <div class="container">
     <h1>Register for Voluntr</h1>
     <form action="/register" method="post">
-      <div class="form-group">
-        <%- locals.form %>
-      </div>
-      <div class="radio">
-        <label>
-          <input type="radio" name="role" id="userTypeVolunteer" value="volunteer"
-          <% if (locals.role === 'volunteer') { %>
-              checked
-          <% } %>
-          >
-          Volunteer
-        </label>
-        <label>
-        <input type="radio" name="role" id="userTypeCoordinator" value="coordinator"
-          <% if (locals.role === 'coordinator') { %>
-            checked
-          <% } %>
-          >
-          Coordinator
-        </label>
-      </div>
+      <%- locals.form %>
       <button type="submit" class="btn btn-default">Submit</button>
     </form>
   </div>
