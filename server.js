@@ -3,12 +3,12 @@ var passport = require('passport');
 
 var app = express();
 
-require('./app/config/passport')(passport)
-require('./app/config/express')(app, passport)
+require('./config/passport')(passport)
+require('./config/express')(app, passport)
 
 var events = require('./app/controllers/events');
 var forms = require('./app/models/forms')
-var middleware = require('./app/config/middleware');
+var middleware = require('./config/middleware');
 var requireLogin = middleware.requireLogin;
 var users = require('./app/controllers/users');
 

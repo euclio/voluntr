@@ -1,6 +1,6 @@
 var bcrypt = require('bcrypt-nodejs');
 
-var database = require('../config/database');
+var database = require('../../config/database');
 var forms = require('../models/forms');
 
 function createUser(req, res) {

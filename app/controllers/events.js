@@ -1,6 +1,6 @@
 var moment = require('moment');
 
-var database = require('../config/database');
+var database = require('../../config/database');
 var forms = require('../models/forms');
 
 exports.index = function(req, res) {
