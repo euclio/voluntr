@@ -31,4 +31,4 @@ module.exports = function(app, passport) {
     );
 
     app.get('/logout', users.logout);
-}
+};

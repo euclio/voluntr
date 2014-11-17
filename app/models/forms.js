@@ -62,7 +62,7 @@ module.exports.registerForm = forms.create({
 
 module.exports.renderForm = function(form) {
     return form.toHTML(bootstrapField);
-}
+};
 
 var bootstrapField = function (name, object) {
     object.widget.classes = object.widget.classes || [];
@@ -75,8 +75,8 @@ var bootstrapField = function (name, object) {
 
     if (object.widget.type === 'multipleRadio') {
         object.widget.classes.push('radio-inline');
-        widget = '<div class="radio">' + object.widget.toHTML(name, object); +
-                 '</div>'
+        widget = '<div class="radio">' + object.widget.toHTML(name, object) +
+                 '</div>';
     } else {
         object.widget.classes.push('form-control');
         widget = object.widget.toHTML(name, object);

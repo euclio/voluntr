@@ -11,7 +11,7 @@ module.exports = function(passport, config) {
     passport.deserializeUser(function(userID, done) {
         database.query('SELECT * FROM users WHERE userID = ?',
                          [userID], function(err, rows, fields) {
-            if (err) { return done(err) }
+            if (err) { return done(err); }
             return done(null, rows[0]);
          });
     });
@@ -48,4 +48,4 @@ module.exports = function(passport, config) {
             });
         }
     ));
-}
+};

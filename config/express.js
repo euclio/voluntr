@@ -29,4 +29,4 @@ module.exports = function(app, passport) {
     app.use(passport.session());
 
     app.use(flash());
-}
+};
