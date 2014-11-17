@@ -1,4 +1,3 @@
-var bcrypt = require('bcrypt-nodejs');
 var express = require('express');
 var moment = require('moment');
 var passport = require('passport');
@@ -13,6 +12,7 @@ require('./app/config/express')(app, passport)
 var forms = require('./app/models/forms.js')
 var middleware = require('./app/config/middleware');
 var requireLogin = middleware.requireLogin;
+var users = require('./app/controllers/users');
 
 app.use('/static', express.static(__dirname + '/static'));
 
@@ -94,40 +94,7 @@ app.get('/register', function(req, res) {
     });
 });
 
-app.post('/register', function(req, res) {
-    forms.registerForm.handle(req, {
-        success: function (form) {
-            // Hash the password and store the user into the databse.
-            bcrypt.genSalt(10, function(err, salt) {
-                bcrypt.hash(req.body.password, salt, null, function(err, hash) {
-                    var query = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
-                    database.query(query,
-                                     [req.body.name,
-                                      req.body.email,
-                                      hash,
-                                      req.body.role], function(err, dbRes) {
-                        if (err) {
-                            // The email address is already registered.
-                            if (err.code === 'ER_DUP_ENTRY') {
-                                req.flash('error', 'That email address is already registered.');
-                                return res.redirect('/register');
-                            } else {
-                                throw err;
-                            }
-                        }
-                        req.flash('success', 'Successfully registered!');
-                        res.redirect('/profile');
-                    });
-                });
-            });
-        },
-        other: function(form) {
-            res.render('register', {
-                form: forms.renderForm(form)
-            });
-        }
-    });
-});
+app.post('/register', users.register);
 
 app.get('/login', function(req, res) {
     res.render('login');
