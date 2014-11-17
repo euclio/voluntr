@@ -31,7 +31,22 @@ function createUser(req, res) {
     });
 }
 
+exports.index = function(req, res) {
+    res.render('index');
+}
+
+exports.profile = function(req, res) {
+    res.render('profile');
+}
+
 exports.register = function(req, res) {
+    res.render('register', {
+        role: req.query.role,
+        form: forms.renderForm(forms.registerForm)
+    });
+}
+
+exports.create = function(req, res) {
     forms.registerForm.handle(req, {
         success: function(form) {
             createUser(req, res);
@@ -42,4 +57,14 @@ exports.register = function(req, res) {
             });
         }
     });
+}
+
+exports.login = function(req, res) {
+    res.render('login');
+}
+
+exports.logout = function(req, res) {
+    req.logout();
+    req.flash('success', 'Logged out successfully.');
+    res.redirect('/');
 }

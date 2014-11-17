@@ -9,8 +9,14 @@ exports.index = function(req, res) {
     });
 }
 
+exports.new = function(req, res) {
+    res.render('addevent', {
+        form: forms.renderForm(forms.addEventForm)
+    });
+}
+
 var DEFAULT_DATE = "2014-11-30";
-exports.addEvent = function(req, res) {
+exports.create = function(req, res) {
     forms.addEventForm.handle(req, {
         success: function(form) {
             var formatHours = function(hours, ampm) {

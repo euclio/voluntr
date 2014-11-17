@@ -7,7 +7,6 @@ require('./config/passport')(passport)
 require('./config/express')(app, passport)
 
 var events = require('./app/controllers/events');
-var forms = require('./app/models/forms')
 var middleware = require('./config/middleware');
 var requireLogin = middleware.requireLogin;
 var users = require('./app/controllers/users');
@@ -16,40 +15,21 @@ app.use('/static', express.static(__dirname + '/static'));
 
 app.use(middleware.injectUser);
 
-app.get('/', function(req, res) {
-    res.render('index');
-});
+app.get('/', users.index);
 
-app.get('/profile',
-        requireLogin,
-        function(req, res) {
-    res.render('profile');
-});
+app.get('/profile', requireLogin, users.profile);
 
 app.get('/events', requireLogin, events.index);
 
-app.get('/add',
-        requireLogin,
-        function(req, res) {
-    res.render('addevent', {
-        form: forms.renderForm(forms.addEventForm)
-    });
-});
+app.get('/add', requireLogin, events.new);
 
-app.post('/add', requireLogin, events.addEvent);
+app.post('/add', requireLogin, events.create);
 
-app.get('/register', function(req, res) {
-    res.render('register', {
-        role: req.query.role,
-        form: forms.renderForm(forms.registerForm)
-    });
-});
+app.get('/register', users.register);
 
-app.post('/register', users.register);
+app.post('/register', users.create);
 
-app.get('/login', function(req, res) {
-    res.render('login');
-});
+app.get('/login', users.login);
 
 app.post('/login',
     passport.authenticate('local', {
@@ -58,10 +38,7 @@ app.post('/login',
         failureFlash: true })
 );
 
-app.get('/logout', function(req, res) {
-    req.logout();
-    res.redirect('/');
-})
+app.get('/logout', users.logout);
 
 app.listen(8080, function() {
     console.log('Running on http://localhost:8080');
