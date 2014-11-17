@@ -1,2 +1,5 @@
+cffi==0.8.6
 mysql-connector-python==2.0.2
+py-bcrypt==0.4
+pycparser==2.10
 wsgiref==0.1.2

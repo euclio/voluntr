@@ -1,6 +1,20 @@
 from datetime import datetime, timedelta
+import random
 
+import bcrypt
 import mysql.connector
+
+
+def generate_users(num_users):
+    def create_random_user(i):
+        name = 'Test user %d' % i
+        email = 'test%d@example.com' % i
+        unhashed_password = 'test%d' % i
+        password = bcrypt.hashpw(unhashed_password, bcrypt.gensalt(10))
+        role = random.choice(['volunteer', 'coordinator'])
+        return (name, email, password, role)
+
+    return [create_random_user(i) for i in range(num_users)]
 
 
 def generate_events(num_events):
@@ -19,8 +33,13 @@ def insert_test_data(connection):
     cursor = connection.cursor()
     cursor.execute('DELETE FROM event')
     events = generate_events(300)
-    cursor.executemany('INSERT INTO event VALUES (NULL, %s,%s,%s,%s,%s)',
+    cursor.executemany('INSERT INTO event VALUES (NULL, %s, %s, %s, %s, %s)',
                        events)
+
+    cursor.execute('DELETE FROM users')
+    users = generate_users(20)
+    cursor.executemany('INSERT INTO users VALUES (NULL, %s, %s, %s, %s)',
+                       users)
     connection.commit()
 
 
