@@ -1,8 +1,5 @@
 var express = require('express');
-var moment = require('moment');
 var passport = require('passport');
-
-var database = require('./app/config/database');
 
 var app = express();
 
@@ -29,13 +26,7 @@ app.get('/profile',
     res.render('profile');
 });
 
-app.get('/events',
-        requireLogin,
-        function(req, res) {
-    database.query('SELECT * FROM event', function(err, rows, fields) {
-        res.render('events', { events: rows, moment: moment });
-    });
-});
+app.get('/events', requireLogin, events.index);
 
 app.get('/add',
         requireLogin,

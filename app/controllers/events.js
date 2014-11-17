@@ -1,5 +1,13 @@
+var moment = require('moment');
+
 var database = require('../config/database');
 var forms = require('../models/forms');
+
+exports.index = function(req, res) {
+    database.query('SELECT * FROM event', function(err, rows, fields) {
+        res.render('events', { events: rows, moment: moment });
+    });
+}
 
 var DEFAULT_DATE = "2014-11-30";
 exports.addEvent = function(req, res) {
@@ -28,8 +36,15 @@ exports.addEvent = function(req, res) {
             var endHours = formatHours(req.body.hours[1], req.body.ampm[1])
             var endTime = DEFAULT_DATE + " " + endHours + req.body.minutes[1]
 
-            var query = "INSERT INTO event (title, description, location, startTime, endTime) VALUES (?, ?, ?, ?, ?)"
-            database.query(query, [req.body.title, req.body.description, req.body.location, startTime, endTime], function(err, dbRes) {
+            var query = "INSERT INTO event \
+                        (title, description, location, startTime, endTime) \
+                        VALUES (?, ?, ?, ?, ?)";
+            database.query(query,
+                           [req.body.title,
+                            req.body.description,
+                            req.body.location,
+                            startTime,
+                            endTime], function(err, dbRes) {
                 if (err) {
                     throw err;
                 } else {
