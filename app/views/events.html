@@ -18,6 +18,15 @@
         </li>
       {% endfor %}
     </ul>
+    <nav>
+      <ul class="pagination">
+        {% for pageNumber in range(1, numPages + 1) %}
+          <li {% if pageNumber == currentPage + 1 %}class="active"{% endif %}>
+            <a href="/events?page={{ pageNumber }}">{{ pageNumber }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
   </div>
 </div>
 {% endblock %}

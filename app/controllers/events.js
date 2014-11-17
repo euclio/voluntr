@@ -4,8 +4,25 @@ var database = require('../../config/database');
 var forms = require('../models/forms');
 
 exports.index = function(req, res) {
-    database.query('SELECT * FROM event', function(err, rows, fields) {
-        res.render('events', { events: rows, moment: moment });
+    // Get the page we are on, 0-indexed
+    var currentPage = (req.param('page') > 0 ? req.param('page') : 1) - 1;
+
+    // The number of events to show per page.
+    var perPage = 30;
+
+    database.query('SELECT COUNT(*) AS "numEvents" FROM event',
+                   function(err, rows, fields) {
+        var numPages = Math.ceil(rows[0].numEvents / perPage);
+        database.query('SELECT * FROM event LIMIT ? OFFSET ?',
+                       [perPage, currentPage * perPage],
+                       function(err, rows, fields) {
+            res.render('events', {
+                currentPage: currentPage,
+                numPages: numPages,
+                events: rows,
+                moment: moment
+            });
+        });
     });
 };
 
