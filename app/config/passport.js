@@ -25,7 +25,7 @@ module.exports = function(passport, config) {
             database.query('SELECT * FROM users WHERE email = ? LIMIT 1',
                              [email], function(err, rows, fields) {
                 if (err) { return done(err); }
-                if (!rows) {
+                if (rows.length === 0) {
                     return done(null, false, {
                         message: 'The email address given is not registered.'
                     });
