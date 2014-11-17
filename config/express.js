@@ -8,6 +8,8 @@ var config = require('./config');
 var nconf = require('./nconf');
 
 module.exports = function(app, passport) {
+    app.use('/static', express.static(config.root + '/static'));
+
     nunjucks.configure('app/views', {
         autoescape: true,
         express: app
