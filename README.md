@@ -13,7 +13,7 @@ Running the Application
 
         mysql
         > use test;
-        > source sql/populate_test_data.sql
+        > source sql/schema.mysql;
 
 2. Run the server, and provide a secret key to use either as an environment
 variable or a command-line parameter.

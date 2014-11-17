@@ -79,5 +79,3 @@ CREATE TABLE receives_review(userID INT NOT NULL,
                     PRIMARY KEY(userID, reviewID),
                     FOREIGN KEY(userID) REFERENCES user(userID),
                     FOREIGN KEY(reviewID) REFERENCES review(reviewID));
-
-
