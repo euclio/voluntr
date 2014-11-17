@@ -11,25 +11,12 @@ require('./app/config/passport')(passport)
 require('./app/config/express')(app, passport)
 
 var forms = require('./app/models/forms.js')
+var middleware = require('./app/config/middleware');
+var requireLogin = middleware.requireLogin;
 
 app.use('/static', express.static(__dirname + '/static'));
 
-// Add user object to all templates automatically.
-app.use(function(req, res, next) {
-    res.locals.user = req.user;
-    next();
-});
-
-/*
- * Middleware to mark a route that should require login.
- */
-function requireLogin(req, res, next) {
-    if (req.user) {
-        next();
-    } else {
-        res.redirect('/login');
-    }
-}
+app.use(middleware.injectUser);
 
 app.get('/', function(req, res) {
     res.render('index');
