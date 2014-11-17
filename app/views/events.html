@@ -1,0 +1,23 @@
+{% extends "layouts/default.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="container">
+    <h1>Your Events</h1>
+    <ul class="media-list">
+      {% for event in events %}
+        <li class="media">
+          <a class="pull-left" href="#">
+            <img class="media-object" src="http://placehold.it/64x64" alt="event photo">
+          </a>
+          <div class="media-body">
+            <h4 class="media-heading">{{ event.title }}</h4>
+            <p>{{ event.description }}</p>
+            <small>{{ moment(event.startTime).format('hh:mma, MMMM DD') }} &mdash; {{ moment(event.endTime).format('hh:mma, MMMM DD') }}</small>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

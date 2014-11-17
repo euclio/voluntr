@@ -1,0 +1,11 @@
+{% extends "layouts/default.html" %}
+
+{% block content %}
+<div class="container">
+  <h1>Register for Voluntr</h1>
+  <form action="/register" method="post">
+    {{ form|safe }}
+    <button type="submit" class="btn btn-default">Submit</button>
+  </form>
+</div>
+{% endblock %}

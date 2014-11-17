@@ -32,27 +32,27 @@ function requireLogin(req, res, next) {
 }
 
 app.get('/', function(req, res) {
-    res.render('pages/index');
+    res.render('index');
 });
 
 app.get('/profile',
         requireLogin,
         function(req, res) {
-    res.render('pages/profile');
+    res.render('profile');
 });
 
 app.get('/events',
         requireLogin,
         function(req, res) {
     database.query('SELECT * FROM event', function(err, rows, fields) {
-        res.render('pages/events', { events: rows, moment: moment });
+        res.render('events', { events: rows, moment: moment });
     });
 });
 
 app.get('/add',
         requireLogin,
         function(req, res) {
-    res.render('pages/addevent', {
+    res.render('addevent', {
         form: forms.renderForm(forms.addEventForm)
     });
 });
@@ -101,7 +101,7 @@ app.post('/add', function(req, res) {
 });
 
 app.get('/register', function(req, res) {
-    res.render('pages/register', {
+    res.render('register', {
         role: req.query.role,
         form: forms.renderForm(forms.registerForm)
     });
@@ -135,7 +135,7 @@ app.post('/register', function(req, res) {
             });
         },
         other: function(form) {
-            res.render('pages/register', {
+            res.render('register', {
                 form: forms.renderForm(form)
             });
         }
@@ -143,7 +143,7 @@ app.post('/register', function(req, res) {
 });
 
 app.get('/login', function(req, res) {
-    res.render('pages/login');
+    res.render('login');
 });
 
 app.post('/login',

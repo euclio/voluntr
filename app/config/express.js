@@ -1,11 +1,19 @@
 var bodyParser = require('body-parser');
 var express = require('express');
 var flash = require('express-flash');
-var nconf = require('./nconf');
+var nunjucks = require('nunjucks');
 var session = require('express-session');
 
+var config = require('./config');
+var nconf = require('./nconf');
+
 module.exports = function(app, passport) {
-    app.set('view engine', 'ejs');
+    nunjucks.configure('app/views', {
+        autoescape: true,
+        express: app
+    });
+
+    app.set('view engine', 'html');
 
     app.use(bodyParser.urlencoded({ extended: false }));
 
