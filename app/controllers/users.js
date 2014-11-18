@@ -36,7 +36,11 @@ exports.index = function(req, res) {
 };
 
 exports.profile = function(req, res) {
-    res.render('profile');
+    if (req.user.role === 'volunteer') {
+        res.render('volunteer_profile');
+    } else {
+        res.render('profile');
+    }
 };
 
 exports.register = function(req, res) {

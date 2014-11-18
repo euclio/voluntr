@@ -1,0 +1,17 @@
+.timematrix table {
+  border-collapse: collapse;
+}
+
+.selected {
+  background-color: green;
+}
+
+.timematrix td {
+  border: solid black 1px;
+  width: 2em;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: default;
+}
