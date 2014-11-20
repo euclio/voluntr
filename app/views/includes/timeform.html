@@ -1,5 +1,10 @@
 <div class="row">
-  <div class="col-md-4">
+  <div class="col-md-3">
+    <div class="form-group">
+      <input type="text" name="date" class="form-control datepicker" readonly="readonly">
+    </div>
+  </div>
+  <div class="col-md-3">
     <div class="form-group">
       <select name="hours" class="form-control">
         {% for i in range(1, 13) %}
@@ -8,7 +13,7 @@
       </select>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="form-group">
       <select name="minutes" class="form-control">
         <option value=":00">:00</option>
@@ -16,7 +21,7 @@
       </select>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="form-group">
       <select name="ampm" class="form-control">
         <option value="AM">AM</option>
