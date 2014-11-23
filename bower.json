@@ -1,0 +1,21 @@
+{
+  "name": "voluntr",
+  "version": "0.0.1",
+  "homepage": "https://github.com/euclio/voluntr",
+  "authors": [
+    "Andy Russell <arussell123@gmail.com>"
+  ],
+  "description": "A Volunteer Management Website",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "static/components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap-multiselect": "~0.9.10"
+  }
+}

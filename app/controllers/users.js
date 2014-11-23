@@ -37,7 +37,41 @@ exports.index = function(req, res) {
 
 exports.profile = function(req, res) {
     if (req.user.role === 'volunteer') {
-        res.render('volunteer_profile');
+        var selectedSkillsQuery = 'SELECT skill_name \
+                     FROM skill, indicate \
+                     WHERE skill.skillID = indicate.skillID \
+                        AND indicate.userID = ?';
+
+        database.query(selectedSkillsQuery,
+                       [req.user.userID],
+                       function(err, rows) {
+            if (err) { throw err; }
+            var skills = [];
+            for (var i = 0; i < rows.length; i++) {
+                skills.push({
+                    skillName: rows[i].skillName,
+                    selected: true
+                });
+            }
+            var unselectedSkillsQuery =
+                'SELECT skill_name \
+                 FROM skill \
+                 WHERE skill_name NOT IN (' +
+                        selectedSkillsQuery +
+                 ')';
+            database.query(unselectedSkillsQuery,
+                           [req.user.userID],
+                           function(err, rows) {
+                if (err) { throw err; }
+                for (var i = 0; i < rows.length; i++) {
+                    skills.push({
+                        skillName: rows[i].skill_name,
+                        selected: false
+                    });
+                }
+                res.render('volunteer_profile', { skills: skills });
+            });
+        });
     } else {
         res.render('profile');
     }
