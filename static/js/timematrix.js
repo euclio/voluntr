@@ -37,6 +37,25 @@ function initializeTable() {
     }
 }
 
+/*
+ * Select any cells that match the array of times.
+ */
+function selectCells(selectedTimes) {
+    var table = $('.timeMatrix table')[0];
+    for (var i = 0; i < selectedTimes.length; i++) {
+        var selectedTime = moment(selectedTimes[i].startTime + selectedTimes[i].dayOfWeek,
+                                  'HH:mm:ssdddd');
+        var row = selectedTime.hour() * 2 + selectedTime.minute() / 30;
+
+        // Translate isoWeekday to 0-based array index
+        var col = selectedTime.isoWeekday() - 1;
+        col = col < 0 ? 7 : col;
+
+        // Add the selected class to the table.
+        $(table.rows[row].cells[col + 1]).addClass('selected');
+    }
+}
+
 function addListeners() {
     /*
      * A jQuery event handler to be called when an element is moused over with
@@ -95,13 +114,13 @@ function getSelected() {
 
 $(document).ready(function() {
     initializeTable();
+    selectCells(window.selectedTimes || []);
     addListeners();
 
     // Add the times that are currently selected to the form right before it is
     // submitted.
     $("form:has(.timematrix)").submit(function() {
         var times = getSelected();
-        console.log(times);
         for (var i = 0; i < times.length; i++) {
             var time = $('<input>')
                 .attr('type', 'hidden')

@@ -29,6 +29,7 @@
 <script src="/static/js/timematrix.js"></script>
 <script src="/static/components/bootstrap-multiselect/bootstrap-multiselect.js"></script>
 <script>
+  window.selectedTimes = JSON.parse('{{ selectedTimes|safe }}');
   $(document).ready(function() {
     $('#volunteer-skills').multiselect({
       enableFiltering: true,

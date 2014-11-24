@@ -76,7 +76,15 @@ exports.profile = function(req, res) {
                         selected: false
                     });
                 }
-                res.render('volunteer_profile', { skills: skills });
+                var query = 'SELECT startTime, dayOfWeek \
+                             FROM specifies_time_available \
+                             WHERE specifies_time_available.userID = ?';
+                database.query(query, [req.user.userID], function(err, rows) {
+                    res.render('volunteer_profile', {
+                        skills: skills,
+                        selectedTimes: JSON.stringify(rows)
+                    });
+                });
             });
         });
     } else {
