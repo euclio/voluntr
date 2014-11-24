@@ -3,7 +3,7 @@
 {% block styles %}
 {{ super () }}
 <link rel="stylesheet" href="/static/css/timematrix.css">
-<link rel="stylesheet" href="/static/components/bootstrap-multiselect/dist/css/bootstrap-multiselect.css">
+<link rel="stylesheet" href="/static/components/bootstrap-multiselect/bootstrap-multiselect.css">
 {% endblock %}
 
 {% block content %}
@@ -27,7 +27,7 @@
 {% block scripts %}
 {{ super() }}
 <script src="/static/js/timematrix.js"></script>
-<script src="/static/components/bootstrap-multiselect/dist/js/bootstrap-multiselect.js"></script>
+<script src="/static/components/bootstrap-multiselect/bootstrap-multiselect.js"></script>
 <script>
   $(document).ready(function() {
     $('#volunteer-skills').multiselect({
