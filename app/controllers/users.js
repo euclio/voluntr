@@ -83,17 +83,40 @@ exports.profile = function(req, res) {
 };
 
 exports.updateProfile = function(req, res) {
-    // Create a list of comma separated tuples to insert into the database
-    var values = req.body['multiselect[]'].map(function(val) {
-        return '(' + req.user.userID + ', ' + mysql.escape(val) + ')';
-    }).join();
+    var values = [];
 
-    var query = 'REPLACE INTO indicate VALUES ' + values;
+    // The multiselect may return an empty object, a single value, or an array.
+    var skills = req.body.skills;
+    if (typeof skills === 'undefined') {
+        // No items were selected, so values should remain empty.
+    } else if (Array.isArray(skills)) {
+        // Multiple items were selected.
+        values = values.concat(skills);
+    } else {
+        // One item was selected.
+        values.push(skills);
+    }
 
-    database.query(query, function(err, dbRes) {
+    // Remove any skills that are already indicated in the database.
+    database.query('DELETE FROM indicate WHERE userID = ?',
+                   [req.user.userID],
+                   function(err, dbRes) {
         if (err) { throw err; }
-        res.redirect('/profile');
-    });
+
+        // Return early if there are no values to insert.
+        if (values.length === 0) { return res.redirect('/profile'); }
+
+        // Create a list of comma separated tuples to insert into the database
+        var queryValues = values.map(function(val) {
+            return '(' + req.user.userID + ', ' + mysql.escape(val) + ')';
+        }).join();
+
+        var query = 'INSERT INTO indicate VALUES ' + queryValues;
+        database.query(query, function(err, dbRes) {
+            if (err) { throw err; }
+            res.redirect('/profile');
+        });
+   });
 };
 
 exports.register = function(req, res) {
