@@ -41,8 +41,9 @@ CREATE TABLE request(eventID INT NOT NULL,
                     FOREIGN KEY (skillID) REFERENCES skill(skillID));
 
 CREATE TABLE specifies_time_available(userID INT NOT NULL,
-                    startTime DATETIME NOT NULL,
-                    PRIMARY KEY (userID, startTime),
+                    startTime TIME NOT NULL,
+                    dayOfWeek ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday') NOT NULL,
+                    PRIMARY KEY (userID, startTime, dayOfWeek),
                     FOREIGN KEY (userID) REFERENCES user(userID));
 
 CREATE TABLE indicate(userID INT NOT NULL,

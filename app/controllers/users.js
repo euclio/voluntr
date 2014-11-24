@@ -1,8 +1,10 @@
 var bcrypt = require('bcrypt-nodejs');
+var moment = require('moment');
 var mysql = require('mysql');
 
 var database = require('../../config/database');
 var forms = require('../models/forms');
+var util = require('../util');
 
 function createUser(req, res) {
     // Hash the password and store the user into the database.
@@ -83,40 +85,50 @@ exports.profile = function(req, res) {
 };
 
 exports.updateProfile = function(req, res) {
-    var values = [];
+    var skills = util.parseMultiArray(req.body.skills);
+    var times = util.parseMultiArray(req.body.times);
 
-    // The multiselect may return an empty object, a single value, or an array.
-    var skills = req.body.skills;
-    if (typeof skills === 'undefined') {
-        // No items were selected, so values should remain empty.
-    } else if (Array.isArray(skills)) {
-        // Multiple items were selected.
-        values = values.concat(skills);
-    } else {
-        // One item was selected.
-        values.push(skills);
-    }
-
-    // Remove any skills that are already indicated in the database.
-    database.query('DELETE FROM indicate WHERE userID = ?',
-                   [req.user.userID],
-                   function(err, dbRes) {
+    // Remove any skills and specified times that are already indicated in the
+    // database.
+    var query = 'DELETE FROM indicate \
+                    WHERE userID = ?';
+    database.query(query, [req.user.userID], function(err, dbRes) {
         if (err) { throw err; }
 
-        // Return early if there are no values to insert.
-        if (values.length === 0) { return res.redirect('/profile'); }
+        if (skills.length > 0) {
+            // Create a list of comma separated tuples to insert into the
+            // database
+            var indicateValues = skills.map(function(val) {
+                return '(' + req.user.userID + ', ' + mysql.escape(val) + ')';
+            }).join();
+            var query = 'INSERT INTO indicate VALUES ' + indicateValues;
+            database.query(query, function(err, dbRes) {
+                if (err) { throw err; }
+            });
+        }
+    });
 
-        // Create a list of comma separated tuples to insert into the database
-        var queryValues = values.map(function(val) {
-            return '(' + req.user.userID + ', ' + mysql.escape(val) + ')';
-        }).join();
+    query = 'DELETE FROM specifies_time_available \
+                WHERE userID = ?';
+    database.query(query, [req.user.userID], function(err, dbRes) {
+        if (err) { throw err; }
 
-        var query = 'INSERT INTO indicate VALUES ' + queryValues;
-        database.query(query, function(err, dbRes) {
-            if (err) { throw err; }
-            res.redirect('/profile');
-        });
+        if (times.length > 0) {
+            var timeAvailableValues = times.map(function(time) {
+                return '(' +
+                    req.user.userID + ', ' +
+                    mysql.escape(moment(time).format('HH:mm:ss')) + ', ' +
+                    mysql.escape(moment(time).format('dddd')) + ')';
+            }).join();
+
+            var query = 'INSERT INTO specifies_time_available VALUES' +
+                            timeAvailableValues;
+            database.query(query, function(err, dbRes) {
+                if (err) { throw err; }
+            });
+        }
    });
+   return res.redirect('/profile');
 };
 
 exports.register = function(req, res) {
