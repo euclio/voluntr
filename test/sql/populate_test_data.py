@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-import random
 
 import bcrypt
 import mysql.connector
@@ -11,7 +10,7 @@ def generate_users(num_users):
         email = 'test%d@example.com' % i
         unhashed_password = 'test%d' % i
         password = bcrypt.hashpw(unhashed_password, bcrypt.gensalt(10))
-        role = random.choice(['volunteer', 'coordinator'])
+        role = ['volunteer', 'coordinator'][i % 2]
         return (name, email, password, role)
 
     return [create_random_user(i) for i in range(num_users)]
