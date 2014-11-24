@@ -1,4 +1,5 @@
 var bcrypt = require('bcrypt-nodejs');
+var mysql = require('mysql');
 
 var database = require('../../config/database');
 var forms = require('../models/forms');
@@ -37,11 +38,10 @@ exports.index = function(req, res) {
 
 exports.profile = function(req, res) {
     if (req.user.role === 'volunteer') {
-        var selectedSkillsQuery = 'SELECT skill_name \
+        var selectedSkillsQuery = 'SELECT * \
                      FROM skill, indicate \
                      WHERE skill.skillID = indicate.skillID \
                         AND indicate.userID = ?';
-
         database.query(selectedSkillsQuery,
                        [req.user.userID],
                        function(err, rows) {
@@ -49,22 +49,27 @@ exports.profile = function(req, res) {
             var skills = [];
             for (var i = 0; i < rows.length; i++) {
                 skills.push({
-                    skillName: rows[i].skillName,
+                    skillID: rows[i].skillID,
+                    skillName: rows[i].skill_name,
                     selected: true
                 });
             }
+
             var unselectedSkillsQuery =
-                'SELECT skill_name \
+                'SELECT * \
                  FROM skill \
-                 WHERE skill_name NOT IN (' +
-                        selectedSkillsQuery +
-                 ')';
+                 WHERE skill.skillID NOT IN ( \
+                    SELECT s2.skillID \
+                    FROM skill AS s2, indicate AS i2 \
+                    WHERE s2.skillID = i2.skillID \
+                        AND i2.userID = ?)';
             database.query(unselectedSkillsQuery,
                            [req.user.userID],
                            function(err, rows) {
                 if (err) { throw err; }
                 for (var i = 0; i < rows.length; i++) {
                     skills.push({
+                        skillID: rows[i].skillID,
                         skillName: rows[i].skill_name,
                         selected: false
                     });
@@ -75,6 +80,20 @@ exports.profile = function(req, res) {
     } else {
         res.render('profile');
     }
+};
+
+exports.updateProfile = function(req, res) {
+    // Create a list of comma separated tuples to insert into the database
+    var values = req.body['multiselect[]'].map(function(val) {
+        return '(' + req.user.userID + ', ' + mysql.escape(val) + ')';
+    }).join();
+
+    var query = 'REPLACE INTO indicate VALUES ' + values;
+
+    database.query(query, function(err, dbRes) {
+        if (err) { throw err; }
+        res.redirect('/profile');
+    });
 };
 
 exports.register = function(req, res) {

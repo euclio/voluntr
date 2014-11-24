@@ -11,13 +11,16 @@
   <h1>Profile Page</h1>
   <p>Welcome, {{ user.name }}! You are logged in as a <strong>{{ user.role }}</strong>.</p>
   <h2>Skills</h2>
-  <select id="volunteer-skills" multiple="multiple">
+  <form method="post" action="/profile">
+  <select id="volunteer-skills" name="multiselect[]" multiple="multiple">
     {% for skill in skills|sort(attribute='skillName') %}
-    <option value="{{ skill.skillName }}" {% if skill.selected %}checked{% endif %}>{{ skill.skillName }}</option>
+    <option value="{{ skill.skillID }}" {% if skill.selected %}selected="selected"{% endif %}>{{ skill.skillName }}</option>
     {% endfor %}
+  </select>
   <h2>Availability</h2>
   <div class="timematrix"></div>
-  </div>
+  <button type="submit">Update Profile</button>
+  </form>
 </div>
 {% endblock %}
 

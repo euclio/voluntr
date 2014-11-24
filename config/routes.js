@@ -11,6 +11,8 @@ module.exports = function(app, passport) {
 
     app.get('/profile', requireLogin, users.profile);
 
+    app.post('/profile', requireLogin, users.updateProfile);
+
     app.get('/events', requireLogin, events.index);
 
     app.get('/add', requireLogin, events.new);
