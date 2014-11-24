@@ -29,3 +29,4 @@ node_modules
 
 # Ignore bower components
 static/components
+bower_components
