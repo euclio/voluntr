@@ -69,7 +69,7 @@ function addListeners() {
 }
 
 /*
- * Returns a JSON string representing the dates that are currently selected in
+ * Returns an array representing the dates that are currently selected in
  * the time matrix. Only the times and days of the week are relevant.
  */
 function getSelected() {
@@ -90,10 +90,24 @@ function getSelected() {
             }
         });
     });
-    return JSON.stringify(selectedTimes);
+    return selectedTimes;
 }
 
 $(document).ready(function() {
     initializeTable();
     addListeners();
+
+    // Add the times that are currently selected to the form right before it is
+    // submitted.
+    $("form:has(.timematrix)").submit(function() {
+        var times = getSelected();
+        console.log(times);
+        for (var i = 0; i < times.length; i++) {
+            var time = $('<input>')
+                .attr('type', 'hidden')
+                .attr('name', 'times')
+                .attr('value', times[i]);
+            $(this).append(time);
+        }
+    });
 });
