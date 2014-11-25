@@ -42,7 +42,7 @@ CREATE TABLE request(eventID INT NOT NULL,
 
 CREATE TABLE specifies_time_available(userID INT NOT NULL,
                     startTime TIME NOT NULL,
-                    dayOfWeek ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday') NOT NULL,
+                    dayOfWeek ENUM('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') NOT NULL,
                     PRIMARY KEY (userID, startTime, dayOfWeek),
                     FOREIGN KEY (userID) REFERENCES user(userID));
 
