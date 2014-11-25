@@ -1,8 +1,10 @@
 var bcrypt = require('bcrypt-nodejs');
+var moment = require('moment');
 var mysql = require('mysql');
 
 var database = require('../../config/database');
 var forms = require('../models/forms');
+var util = require('../util');
 
 function createUser(req, res) {
     // Hash the password and store the user into the database.
@@ -74,7 +76,15 @@ exports.profile = function(req, res) {
                         selected: false
                     });
                 }
-                res.render('volunteer_profile', { skills: skills });
+                var query = 'SELECT startTime, dayOfWeek \
+                             FROM specifies_time_available \
+                             WHERE specifies_time_available.userID = ?';
+                database.query(query, [req.user.userID], function(err, rows) {
+                    res.render('volunteer_profile', {
+                        skills: skills,
+                        selectedTimes: JSON.stringify(rows)
+                    });
+                });
             });
         });
     } else {
@@ -83,17 +93,50 @@ exports.profile = function(req, res) {
 };
 
 exports.updateProfile = function(req, res) {
-    // Create a list of comma separated tuples to insert into the database
-    var values = req.body['multiselect[]'].map(function(val) {
-        return '(' + req.user.userID + ', ' + mysql.escape(val) + ')';
-    }).join();
+    var skills = util.parseMultiArray(req.body.skills);
+    var times = util.parseMultiArray(req.body.times);
 
-    var query = 'REPLACE INTO indicate VALUES ' + values;
-
-    database.query(query, function(err, dbRes) {
+    // Remove any skills and specified times that are already indicated in the
+    // database.
+    var query = 'DELETE FROM indicate \
+                    WHERE userID = ?';
+    database.query(query, [req.user.userID], function(err, dbRes) {
         if (err) { throw err; }
-        res.redirect('/profile');
+
+        if (skills.length > 0) {
+            // Create a list of comma separated tuples to insert into the
+            // database
+            var indicateValues = skills.map(function(val) {
+                return '(' + req.user.userID + ', ' + mysql.escape(val) + ')';
+            }).join();
+            var query = 'INSERT INTO indicate VALUES ' + indicateValues;
+            database.query(query, function(err, dbRes) {
+                if (err) { throw err; }
+            });
+        }
     });
+
+    query = 'DELETE FROM specifies_time_available \
+                WHERE userID = ?';
+    database.query(query, [req.user.userID], function(err, dbRes) {
+        if (err) { throw err; }
+
+        if (times.length > 0) {
+            var timeAvailableValues = times.map(function(time) {
+                return '(' +
+                    req.user.userID + ', ' +
+                    mysql.escape(moment(time).format('HH:mm:ss')) + ', ' +
+                    mysql.escape(moment(time).format('dddd')) + ')';
+            }).join();
+
+            var query = 'INSERT INTO specifies_time_available VALUES' +
+                            timeAvailableValues;
+            database.query(query, function(err, dbRes) {
+                if (err) { throw err; }
+            });
+        }
+   });
+   return res.redirect('/profile');
 };
 
 exports.register = function(req, res) {

@@ -3,7 +3,7 @@
 {% block styles %}
 {{ super () }}
 <link rel="stylesheet" href="/static/css/timematrix.css">
-<link rel="stylesheet" href="/static/components/bootstrap-multiselect/dist/css/bootstrap-multiselect.css">
+<link rel="stylesheet" href="/static/components/bootstrap-multiselect/bootstrap-multiselect.css">
 {% endblock %}
 
 {% block content %}
@@ -12,7 +12,7 @@
   <p>Welcome, {{ user.name }}! You are logged in as a <strong>{{ user.role }}</strong>.</p>
   <h2>Skills</h2>
   <form method="post" action="/profile">
-  <select id="volunteer-skills" name="multiselect[]" multiple="multiple">
+  <select id="volunteer-skills" name="skills" multiple="multiple">
     {% for skill in skills|sort(attribute='skillName') %}
     <option value="{{ skill.skillID }}" {% if skill.selected %}selected="selected"{% endif %}>{{ skill.skillName }}</option>
     {% endfor %}
@@ -27,8 +27,9 @@
 {% block scripts %}
 {{ super() }}
 <script src="/static/js/timematrix.js"></script>
-<script src="/static/components/bootstrap-multiselect/dist/js/bootstrap-multiselect.js"></script>
+<script src="/static/components/bootstrap-multiselect/bootstrap-multiselect.js"></script>
 <script>
+  window.selectedTimes = JSON.parse('{{ selectedTimes|safe }}');
   $(document).ready(function() {
     $('#volunteer-skills').multiselect({
       enableFiltering: true,
