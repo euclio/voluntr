@@ -27,8 +27,12 @@ exports.index = function(req, res) {
 };
 
 exports.new = function(req, res) {
-    res.render('addevent', {
-        form: forms.renderForm(forms.addEventForm)
+    database.query('SELECT * FROM skill', function(err, rows, fields) {
+        if (err) { throw err; }
+        res.render('addevent', {
+            skills: rows,
+            form: forms.renderForm(forms.addEventForm)
+        });
     });
 };
 
@@ -106,6 +110,18 @@ exports.create = function(req, res) {
                     if (err) {
                         throw err;
                     } else {
+                        var event_id = dbRes.insertId;
+                        var skills = reqobj.body.skills;
+                        var query = "INSERT INTO request \
+                        (eventID, skillID) \
+                        VALUES (?, ?)";
+                        for (var i = 0; i < skills.length; i++) {
+                            database.query(query, [event_id, skills[i]], function(err, res) {
+                                if (err) {
+                                    throw err;
+                                }
+                            });
+                        }
                         req.flash('success', 'Event successfully added.');
                         res.redirect('/add');
                     }
