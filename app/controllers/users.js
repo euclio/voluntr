@@ -10,7 +10,7 @@ function createUser(req, res) {
     // Hash the password and store the user into the database.
     bcrypt.genSalt(10, function(err, salt) {
         bcrypt.hash(req.body.password, salt, null, function(err, hash) {
-            var query = ('INSERT INTO users (name, email, password, role) \
+            var query = ('INSERT INTO user (name, email, password, role) \
                           VALUES (?, ?, ?, ?)');
             database.query(query,
                            [req.body.name,
