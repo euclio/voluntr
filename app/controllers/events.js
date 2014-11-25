@@ -51,25 +51,17 @@ var toMilitaryTime = function(hours, ampm) {
 
 //make sure start date is before end date
 var validateStartBeforeEnd = function(start, end) {
-    if (moment(start.date).isBefore(end.date)) {
-        return true;
-    } else if (moment(start.date).isSame(end.date)) {
-        startHours = toMilitaryTime(start.hours, start.ampm);
-        endHours = toMilitaryTime(end.hours, end.ampm);
-        if (startHours > endHours) {
-            return false;
-        } else if (startHours == endHours) {
-            if (start.minutes >= end.minutes) {
-                return false;
-            } else {
-                return true;
-            }
+    //make sure hours is in proper string format for moment (two digits)
+    var formatHours = function(hours) {
+        if (hours < 10) {
+            return "0" + hours;
         } else {
-            return true;
+            return hours;
         }
-    } else {
-        return false;
     }
+    var start = start.date + " " + formatHours(toMilitaryTime(parseInt(start.hours), start.ampm)) + start.minutes;
+    var end = end.date + " " + formatHours(toMilitaryTime(parseInt(end.hours), end.ampm)) + end.minutes;
+    return moment(start).isBefore(end);
 };
 
 exports.create = function(req, res) {
