@@ -3,12 +3,14 @@
 {% block styles %}
 {{ super () }}
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="/static/components/bootstrap-multiselect/bootstrap-multiselect.css">
 {% endblock %}
 
 {% block scripts %}
 {{ super () }}
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<script src="/static/components/bootstrap-multiselect/bootstrap-multiselect.js"></script>
 <script>
   $(function() {
     $(".datepicker").datepicker();
