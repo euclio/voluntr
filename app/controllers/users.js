@@ -1,3 +1,4 @@
+var async = require('async');
 var bcrypt = require('bcrypt-nodejs');
 var moment = require('moment');
 var mysql = require('mysql');
@@ -8,29 +9,39 @@ var util = require('../util');
 
 function createUser(req, res) {
     // Hash the password and store the user into the database.
-    bcrypt.genSalt(10, function(err, salt) {
-        bcrypt.hash(req.body.password, salt, null, function(err, hash) {
+    async.waterfall([
+        function generateSalt(callback) {
+            bcrypt.genSalt(10, function(err, salt) {
+                callback(err, salt);
+            });
+        },
+        function generatePasswordHash(salt, callback) {
+            bcrypt.hash(req.body.password, salt, null, function(err, hash) {
+                callback(err, hash);
+            });
+        },
+        function storeNewUser(hash, callback) {
             var query = ('INSERT INTO user (name, email, password, role) \
                           VALUES (?, ?, ?, ?)');
-            database.query(query,
-                           [req.body.name,
-                            req.body.email,
-                            hash,
-                            req.body.role], function(err, dbRes) {
-                if (err) {
-                    if (err.code === 'ER_DUP_ENTRY') {
-                        // The email address is already registered.
-                        req.flash('error',
-                                  'That email address is already registered.');
-                        return res.redirect('/register');
-                    } else {
-                        throw err;
-                    }
-                }
-                req.flash('success', 'Successfully registered!');
-                res.redirect('/profile');
+            var params = [req.body.name, req.body.email, hash, req.body.role];
+            database.query(query, params, function(err, dbRes) {
+                callback(err);
             });
-        });
+        }
+    ], function done(err) {
+        if (err) {
+            if (err.code === 'ER_DUP_ENTRY') {
+                // The email address is already registered.
+                req.flash('error',
+                          'That email address is already registered.');
+                return res.redirect('/register');
+            } else {
+                throw err;
+            }
+        }
+
+        req.flash('success', 'Successfully registered!');
+        res.redirect('/profile');
     });
 }
 
@@ -40,103 +51,159 @@ exports.index = function(req, res) {
 
 exports.profile = function(req, res) {
     if (req.user.role === 'volunteer') {
-        var selectedSkillsQuery = 'SELECT * \
-                     FROM skill, indicate \
-                     WHERE skill.skillID = indicate.skillID \
-                        AND indicate.userID = ?';
-        database.query(selectedSkillsQuery,
-                       [req.user.userID],
-                       function(err, rows) {
-            if (err) { throw err; }
-            var skills = [];
-            for (var i = 0; i < rows.length; i++) {
-                skills.push({
-                    skillID: rows[i].skillID,
-                    skillName: rows[i].skill_name,
-                    selected: true
+        async.parallel({
+            skills: getSkills,
+            selectedTimes: function(callback) {
+                var selectedTimesQuery =
+                    'SELECT startTime, dayOfWeek \
+                     FROM specifies_time_available \
+                     WHERE specifies_time_available.userID = ?';
+                database.query(selectedTimesQuery, [req.user.userID],
+                               function(err, rows) {
+                    callback(err, rows);
                 });
             }
-
-            var unselectedSkillsQuery =
-                'SELECT * \
-                 FROM skill \
-                 WHERE skill.skillID NOT IN ( \
-                    SELECT s2.skillID \
-                    FROM skill AS s2, indicate AS i2 \
-                    WHERE s2.skillID = i2.skillID \
-                        AND i2.userID = ?)';
-            database.query(unselectedSkillsQuery,
-                           [req.user.userID],
-                           function(err, rows) {
-                if (err) { throw err; }
-                for (var i = 0; i < rows.length; i++) {
-                    skills.push({
-                        skillID: rows[i].skillID,
-                        skillName: rows[i].skill_name,
-                        selected: false
-                    });
-                }
-                var query = 'SELECT startTime, dayOfWeek \
-                             FROM specifies_time_available \
-                             WHERE specifies_time_available.userID = ?';
-                database.query(query, [req.user.userID], function(err, rows) {
-                    res.render('volunteer_profile', {
-                        skills: skills,
-                        selectedTimes: JSON.stringify(rows)
-                    });
-                });
+        }, function done(err, results) {
+            if (err) { throw err; }
+            res.render('volunteer_profile', {
+                skills: results.skills,
+                selectedTimes: JSON.stringify(results.selectedTimes)
             });
         });
     } else {
         res.render('profile');
     }
+
+    function getSkills(callback) {
+        async.parallel({
+            selectedSkills: function(callback) {
+                var selectedSkillsQuery =
+                    'SELECT * \
+                     FROM skill, indicate \
+                     WHERE skill.skillID = indicate.skillID \
+                        AND indicate.userID = ?';
+                database.query(selectedSkillsQuery, [req.user.userID],
+                               function(err, rows) {
+                    var selectedSkills = rows.map(function(skill) {
+                        return {
+                            skillID: skill.skillID,
+                            skillName: skill.skill_name,
+                            selected: true
+                        };
+                    });
+                    callback(err, selectedSkills);
+                });
+            },
+            unselectedSkills: function(callback) {
+                var unselectedSkillsQuery =
+                    'SELECT * \
+                     FROM skill \
+                     WHERE skill.skillID NOT IN ( \
+                        SELECT s2.skillID \
+                        FROM skill AS s2, indicate AS i2 \
+                        WHERE s2.skillID = i2.skillID \
+                            AND i2.userID = ?)';
+                database.query(unselectedSkillsQuery, [req.user.userID],
+                               function(err, rows) {
+                    var unselectedSkills = rows.map(function(skill) {
+                        return {
+                            skillID: skill.skillID,
+                            skillName: skill.skill_name,
+                            selected: false
+                        };
+                    });
+                    callback(err, unselectedSkills);
+                });
+            }
+        }, function(err, results) {
+            var skills =
+                results.selectedSkills.concat(results.unselectedSkills);
+            callback(err, skills);
+        });
+    }
 };
 
 exports.updateProfile = function(req, res) {
     var skills = util.parseMultiArray(req.body.skills);
-    var times = util.parseMultiArray(req.body.times);
+    var availability = util.parseMultiArray(req.body.times);
 
     // Remove any skills and specified times that are already indicated in the
     // database.
-    var query = 'DELETE FROM indicate \
-                    WHERE userID = ?';
-    database.query(query, [req.user.userID], function(err, dbRes) {
+    async.parallel([
+        updateSkills, updateAvailability
+    ], function(err) {
         if (err) { throw err; }
-
-        if (skills.length > 0) {
-            // Create a list of comma separated tuples to insert into the
-            // database
-            var indicateValues = skills.map(function(val) {
-                return '(' + req.user.userID + ', ' + mysql.escape(val) + ')';
-            }).join();
-            var query = 'INSERT INTO indicate VALUES ' + indicateValues;
-            database.query(query, function(err, dbRes) {
-                if (err) { throw err; }
-            });
-        }
+        res.redirect('/profile');
     });
 
-    query = 'DELETE FROM specifies_time_available \
-                WHERE userID = ?';
-    database.query(query, [req.user.userID], function(err, dbRes) {
-        if (err) { throw err; }
+    function updateSkills(callback) {
+        async.series([
+            function deleteSkills(callback) {
+                var deleteSkillsQuery =
+                    'DELETE \
+                     FROM indicate \
+                     WHERE userID = ?';
+                database.query(deleteSkillsQuery, [req.user.userID],
+                               function(err, dbRes) {
+                    callback(err);
+                });
+            },
+            function insertNewSkills(callback) {
+                // If there are no skills to update, we're done.
+                if (skills.length === 0) { return callback(null); }
 
-        if (times.length > 0) {
-            var timeAvailableValues = times.map(function(time) {
-                return '(' +
-                    req.user.userID + ', ' +
-                    mysql.escape(moment(time).format('HH:mm:ss')) + ', ' +
-                    mysql.escape(moment(time).format('dddd')) + ')';
-            }).join();
+                // Create a list of comma-separated tuples to insert into the
+                // database.
+                var indicateValues = skills.map(function(val) {
+                    return '(' + req.user.userID + ', ' +
+                                 mysql.escape(val) + ')';
+                }).join();
+                var newSkillsQuery =
+                    'INSERT INTO indicate VALUES ' + indicateValues;
+                database.query(newSkillsQuery, function(err, dbRes) {
+                    callback(err);
+                });
+            }
+        ], function(err) {
+            callback(err);
+        });
+    }
 
-            var query = 'INSERT INTO specifies_time_available VALUES' +
-                            timeAvailableValues;
-            database.query(query, function(err, dbRes) {
-                if (err) { throw err; }
-            });
-        }
-   });
-   return res.redirect('/profile');
+    function updateAvailability(callback) {
+        async.series([
+            function deleteAvailability(callback) {
+                deleteAvailabilityQuery =
+                    'DELETE \
+                     FROM specifies_time_available \
+                     WHERE userID = ?';
+                database.query(deleteAvailabilityQuery, [req.user.userID],
+                               function(err, dbRes) {
+                    callback(err);
+                });
+            },
+            function insertNewAvailability(callback) {
+                // If there are no times to insert, we're done.
+                if (availability.length === 0) { return callback(null); }
+
+                // Create a list of comma-separated tuples to insert into the
+                // database.
+                var availabilityValues = availability.map(function(time) {
+                    return '(' +
+                        req.user.userID + ', ' +
+                        mysql.escape(moment(time).format('HH:mm:ss')) + ', ' +
+                        mysql.escape(moment(time).format('dddd')) + ')';
+                }).join();
+                var newAvailabilityQuery =
+                    'INSERT INTO specifies_time_available VALUES ' +
+                        availabilityValues;
+                database.query(newAvailabilityQuery, function(err, dbRes) {
+                    callback(err);
+                });
+            }
+        ], function(err) {
+            callback(err);
+        });
+    }
 };
 
 exports.register = function(req, res) {

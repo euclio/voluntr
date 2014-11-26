@@ -1,3 +1,4 @@
+var async = require('async');
 var moment = require('moment');
 
 var database = require('../../config/database');
@@ -10,18 +11,33 @@ exports.index = function(req, res) {
     // The number of events to show per page.
     var perPage = 30;
 
-    database.query('SELECT COUNT(*) AS "numEvents" FROM event',
-                   function(err, rows, fields) {
-        var numPages = Math.ceil(rows[0].numEvents / perPage);
-        database.query('SELECT * FROM event LIMIT ? OFFSET ?',
-                       [perPage, currentPage * perPage],
-                       function(err, rows, fields) {
-            res.render('events', {
-                currentPage: currentPage,
-                numPages: numPages,
-                events: rows,
-                moment: moment
+    async.waterfall([
+        function getNumberOfPages(callback) {
+            var numEventsQuery =
+                'SELECT COUNT(*) AS "numEvents" \
+                 FROM event';
+            database.query(numEventsQuery, function(err, rows) {
+                var numPages = Math.ceil(rows[0].numEvents / perPage);
+                callback(err, numPages);
             });
+        },
+        function getEventsForPage(numPages, callback) {
+            var eventsQuery =
+                'SELECT * \
+                 FROM event \
+                 LIMIT ? OFFSET ?';
+            database.query(eventsQuery, [perPage, currentPage * perPage],
+                           function(err, rows) {
+                callback(err, rows, numPages);
+            });
+        }
+    ], function(err, events, numPages) {
+        if (err) { throw err; }
+        res.render('events', {
+            currentPage: currentPage,
+            numPages: numPages,
+            events: events,
+            moment: moment
         });
     });
 };
@@ -65,63 +81,66 @@ var validateStartBeforeEnd = function(start, end) {
 };
 
 exports.create = function(req, res) {
-    var reqobj = req;
     forms.addEventForm.handle(req, {
-        success: function(form) {
-            var start = {
-                date: reqobj.body.date[0],
-                hours: reqobj.body.hours[0],
-                minutes: reqobj.body.minutes[0],
-                ampm: reqobj.body.ampm[0]
-            };
-            var end = {
-                date: reqobj.body.date[1],
-                hours: reqobj.body.hours[1],
-                minutes: reqobj.body.minutes[1],
-                ampm: reqobj.body.ampm[1]
-            }
-            if (!validateStartBeforeEnd(start, end)) {
-                req.flash("error", 'Start time must be before end time.');
-                res.redirect('/add');
-            } else {
-                var startHours = toMilitaryTime(parseInt(req.body.hours[0]), req.body.ampm[0]);
-                var startTime = req.body.date[0] + " " + startHours + req.body.minutes[0] + ":00";
-
-                var endHours = toMilitaryTime(parseInt(req.body.hours[1]), req.body.ampm[1]);
-                var endTime = req.body.date[1] + " " + endHours + req.body.minutes[1];
-
-                var query = "INSERT INTO event \
-                        (title, description, location, startTime, endTime) \
-                        VALUES (?, ?, ?, ?, ?)";
-                database.query(query,
-                           [req.body.title,
-                            req.body.description,
-                            req.body.location,
-                            startTime,
-                            endTime], function(err, dbRes) {
-                    if (err) {
-                        throw err;
-                    } else {
-                        var event_id = dbRes.insertId;
-                        var skills = reqobj.body.skills;
-                        var query = "INSERT INTO request \
-                        (eventID, skillID) \
-                        VALUES (?, ?)";
-                        for (var i = 0; i < skills.length; i++) {
-                            database.query(query, [event_id, skills[i]], function(err, res) {
-                                if (err) {
-                                    throw err;
-                                }
-                            });
-                        }
-                        req.flash('success', 'Event successfully added.');
-                        res.redirect('/add');
-                    }
-                });
-            }
-        },
+        success: createEvent,
         other: function(form) {
             res.redirect('/add');
         }
     });
+
+    function createEvent(form) {
+        var start = {
+            date: req.body.date[0],
+            hours: req.body.hours[0],
+            minutes: req.body.minutes[0],
+            ampm: req.body.ampm[0]
+        };
+        var end = {
+            date: req.body.date[1],
+            hours: req.body.hours[1],
+            minutes: req.body.minutes[1],
+            ampm: req.body.ampm[1]
+        };
+
+        if (!validateStartBeforeEnd(start, end)) {
+            req.flash("error", 'Start time must be before end time.');
+            return res.redirect('/add');
+        }
+
+        var startHours = toMilitaryTime(parseInt(req.body.hours[0]), req.body.ampm[0]);
+        var startTime = req.body.date[0] + " " + startHours + req.body.minutes[0] + ":00";
+
+        var endHours = toMilitaryTime(parseInt(req.body.hours[1]), req.body.ampm[1]);
+        var endTime = req.body.date[1] + " " + endHours + req.body.minutes[1];
+
+        async.waterfall([
+            function createEvent(callback) {
+                var createEventQuery =
+                    'INSERT INTO event \
+                    (title, description, location, startTime, endTime) \
+                    VALUES (?, ?, ?, ?, ?)';
+                var params = [req.body.title, req.body.description,
+                              req.body.location, startTime, endTime];
+                database.query(createEventQuery, params, function(err, dbRes) {
+                    callback(err, dbRes.insertId);
+                });
+            },
+            function createSkillRequests(eventID, callback) {
+                var skillRequestValues = req.body.skills.map(function(skill) {
+                    return '(' + eventID + ', ' + skill + ')';
+                }).join();
+                var createRequestQuery =
+                    'INSERT INTO request \
+                     (eventID, skillID) \
+                     VALUES ' + skillRequestValues;
+                database.query(createRequestQuery, function(err, dbRes) {
+                    callback(err);
+                });
+            }
+        ], function(err) {
+            if (err) { throw err; }
+            req.flash('success', 'Event successfully added.');
+            res.redirect('/add');
+        });
+    }
 };
