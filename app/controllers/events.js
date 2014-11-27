@@ -3,6 +3,7 @@ var moment = require('moment');
 
 var database = require('../../config/database');
 var forms = require('../models/forms');
+var util = require('../util');
 
 exports.index = function(req, res) {
     // Get the page we are on, 0-indexed
@@ -107,6 +108,8 @@ exports.create = function(req, res) {
             return res.redirect('/add');
         }
 
+        var skills = util.parseMultiArray(req.body.skills);
+
         var startHours = toMilitaryTime(parseInt(req.body.hours[0]), req.body.ampm[0]);
         var startTime = req.body.date[0] + " " + startHours + req.body.minutes[0] + ":00";
 
@@ -126,7 +129,11 @@ exports.create = function(req, res) {
                 });
             },
             function createSkillRequests(eventID, callback) {
-                var skillRequestValues = req.body.skills.map(function(skill) {
+                // If we have no skills required for this event, then we're
+                // done.
+                if (skills.length === 0) { return callback(null); }
+
+                var skillRequestValues = skills.map(function(skill) {
                     return '(' + eventID + ', ' + skill + ')';
                 }).join();
                 var createRequestQuery =
