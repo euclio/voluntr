@@ -12,3 +12,14 @@ exports.injectUser = function(req, res, next) {
 exports.requireLogin = function(req, res, next) {
     return req.user ? next() : res.redirect('/login');
 };
+
+/*
+ * Routes that should only be accessed by coordinators.
+ */
+exports.coordinatorOnly = function(req, res, next) {
+    if (req.user.role === 'coordinator') {
+        return next();
+    } else {
+        return res.status(403).send('Volunteers may not create events.');
+    }
+};
