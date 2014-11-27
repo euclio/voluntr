@@ -85,7 +85,7 @@ exports.create = function(req, res) {
     forms.addEventForm.handle(req, {
         success: createEvent,
         other: function(form) {
-            res.redirect('/add');
+            res.redirect('/events/add');
         }
     });
 
@@ -105,7 +105,7 @@ exports.create = function(req, res) {
 
         if (!validateStartBeforeEnd(start, end)) {
             req.flash("error", 'Start time must be before end time.');
-            return res.redirect('/add');
+            return res.redirect('/events/add');
         }
 
         var skills = util.parseMultiArray(req.body.skills);
@@ -147,7 +147,7 @@ exports.create = function(req, res) {
         ], function(err) {
             if (err) { throw err; }
             req.flash('success', 'Event successfully added.');
-            res.redirect('/add');
+            res.redirect('/events/add');
         });
     }
 };
