@@ -92,7 +92,7 @@ exports.create = function(req, res) {
             function createSkillRequests(eventID, callback) {
                 // If we have no skills required for this event, then we're
                 // done.
-                if (skills.length === 0) { return callback(null); }
+                if (skills.length === 0) { return callback(null, eventID); }
 
                 var skillRequestValues = skills.map(function(skill) {
                     return '(' + eventID + ', ' + skill + ')';
@@ -102,6 +102,24 @@ exports.create = function(req, res) {
                      (eventID, skillID) \
                      VALUES ' + skillRequestValues;
                 database.query(createRequestQuery, function(err, dbRes) {
+                    callback(err, eventID);
+                });
+            },
+            function createTimeSlots(eventID, callback) {
+                var DEFAULT_NUM_NEEDED = 5;
+                var cur = start;
+                times = []
+                while (cur.isBefore(end)) {
+                    times.push('' + cur.toDate());
+                    cur.add(30, 'minute');
+                }
+                var eventTimeSlots = times.map(function(time) {
+                    return '(' + eventID + ', ' + time + ', ' + DEFAULT_NUM_NEEDED + ', ' + 0 + ')';
+                }).join();
+                var timeSlotsQuery = 'INSERT INTO time_slot \
+                                      (eventID, startTime, num_needed, num_confirmed) \
+                                      VALUES ' + eventTimeSlots;
+                database.query(timeSlotsQuery, function(err, dbRes) {
                     callback(err);
                 });
             }
