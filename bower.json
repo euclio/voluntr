@@ -16,6 +16,7 @@
     "tests"
   ],
   "dependencies": {
-    "bootstrap-multiselect": "~0.9.10"
+    "bootstrap-multiselect": "~0.9.10",
+    "datetimepicker": "~2.4.1"
   }
 }

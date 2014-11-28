@@ -4,6 +4,7 @@
 {{ super () }}
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
 <link rel="stylesheet" href="/static/components/bootstrap-multiselect/bootstrap-multiselect.css">
+<link rel="stylesheet" href="/static/components/datetimepicker/jquery.datetimepicker.css">
 {% endblock %}
 
 {% block scripts %}
@@ -11,12 +12,19 @@
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
 <script src="/static/components/bootstrap-multiselect/bootstrap-multiselect.js"></script>
+<script src="/static/components/datetimepicker/jquery.datetimepicker.js"></script>
 <script>
   $(function() {
-    $(".datepicker").datepicker();
-    $(".datepicker").datepicker("option", "showAnim", "slideDown");
-    $(".datepicker").datepicker("option", "dateFormat", "yy-mm-dd");
-    $(".datepicker").datepicker("setDate", new Date());
+    var datetimepickerOptions = {
+      format: 'unixtime',
+      inline: true,
+      minDate: 0,
+      scrollMonth: false,
+      step: 30
+    };
+
+    $("#startTime").datetimepicker(datetimepickerOptions);
+    $("#endTime").datetimepicker(datetimepickerOptions);
 
     $('#event-skills').multiselect({
       enableFiltering: true,
@@ -29,21 +37,27 @@
 {% block content %}
 <div class="container">
   <h1 align="center">Add Event</h1>
-  <div class="col-xs-6">
+  <div class="col-xs-12">
     <form action="/events/add" method="post">
       {{ form|safe }}
-      <label>Desired Skills</label>
-      <div>
+      <div class="form-group">
+        <label for="event-skills">Desired Skills</label>
         <select id="event-skills" name="skills" multiple="multiple">
           {% for skill in skills|sort(attribute='skill_name') %}
           <option value="{{skill.skillID}}">{{skill.skill_name}}</option>
           {% endfor %}
         </select>
       </div>
-      <label>Start Time</label>
-      {% include "includes/timeform.html" %}
-      <label>End Time</label>
-      {% include "includes/timeform.html" %}
+      <div class="row">
+        <div class="form-group col-xs-6">
+          <label for="startTime">Start Time</label>
+          <input id="startTime" name="startTime">
+        </div>
+        <div class="form-group col-xs-6">
+          <label for="endTime">End Time</label>
+          <input id="endTime" name="endTime">
+        </div>
+      </div>
       <button type="submit" class="btn btn-primary">Submit</button>
   </div>
 </div>

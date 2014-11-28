@@ -53,34 +53,6 @@ exports.new = function(req, res) {
     });
 };
 
-var toMilitaryTime = function(hours, ampm) {
-    if (ampm == "AM") {
-        if (hours == 12) {
-            hours = 0;
-        }
-    } else {
-        if (hours != 12) {
-            hours += 12;
-        }
-    }
-    return hours;
-};
-
-//make sure start date is before end date
-var validateStartBeforeEnd = function(start, end) {
-    //make sure hours is in proper string format for moment (two digits)
-    var formatHours = function(hours) {
-        if (hours < 10) {
-            return "0" + hours;
-        } else {
-            return hours;
-        }
-    }
-    var start = start.date + " " + formatHours(toMilitaryTime(parseInt(start.hours), start.ampm)) + start.minutes;
-    var end = end.date + " " + formatHours(toMilitaryTime(parseInt(end.hours), end.ampm)) + end.minutes;
-    return moment(start).isBefore(end);
-};
-
 exports.create = function(req, res) {
     forms.addEventForm.handle(req, {
         success: createEvent,
@@ -90,31 +62,20 @@ exports.create = function(req, res) {
     });
 
     function createEvent(form) {
-        var start = {
-            date: req.body.date[0],
-            hours: req.body.hours[0],
-            minutes: req.body.minutes[0],
-            ampm: req.body.ampm[0]
-        };
-        var end = {
-            date: req.body.date[1],
-            hours: req.body.hours[1],
-            minutes: req.body.minutes[1],
-            ampm: req.body.ampm[1]
-        };
+        if (!req.body.startTime || !req.body.endTime) {
+            req.flash('error', 'Please enter a start and end time.');
+            return res.redirect('/events/add');
+        }
 
-        if (!validateStartBeforeEnd(start, end)) {
+        var start = moment(req.body.startTime, 'X');
+        var end = moment(req.body.endTime, 'X');
+
+        if (!start.isBefore(end)) {
             req.flash("error", 'Start time must be before end time.');
             return res.redirect('/events/add');
         }
 
         var skills = util.parseMultiArray(req.body.skills);
-
-        var startHours = toMilitaryTime(parseInt(req.body.hours[0]), req.body.ampm[0]);
-        var startTime = req.body.date[0] + " " + startHours + req.body.minutes[0] + ":00";
-
-        var endHours = toMilitaryTime(parseInt(req.body.hours[1]), req.body.ampm[1]);
-        var endTime = req.body.date[1] + " " + endHours + req.body.minutes[1];
 
         async.waterfall([
             function createEvent(callback) {
@@ -123,7 +84,7 @@ exports.create = function(req, res) {
                     (title, description, location, startTime, endTime) \
                     VALUES (?, ?, ?, ?, ?)';
                 var params = [req.body.title, req.body.description,
-                              req.body.location, startTime, endTime];
+                              req.body.location, start.toDate(), end.toDate()];
                 database.query(createEventQuery, params, function(err, dbRes) {
                     callback(err, dbRes.insertId);
                 });
