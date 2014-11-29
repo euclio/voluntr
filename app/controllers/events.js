@@ -90,52 +90,54 @@ exports.create = function(req, res) {
                 });
             },
             function insertSkillsAndTimes(eventID, callback) {
-                async.parallel(
-                    [
-                        function createSkillRequests(callback) {
-                            // If we have no skills required for this event, then we're
-                            // done.
-                            if (skills.length === 0) { return callback(null); }
+                async.parallel([
+                    function createSkillRequests(callback) {
+                        // If we have no skills required for this event, then we're
+                        // done.
+                        if (skills.length === 0) { return callback(null); }
 
-                            var skillRequestValues = skills.map(function(skill) {
-                                return '(' + eventID + ', ' + skill + ')';
-                            }).join();
-                            var createRequestQuery =
-                                'INSERT INTO request \
-                                 (eventID, skillID) \
-                                 VALUES ' + skillRequestValues;
-                            database.query(createRequestQuery, function(err, dbRes) {
-                                callback(err, skills);
-                            });
-                        },
-                        function createTimeSlots(callback) {
-                            var DEFAULT_NUM_NEEDED = 5;
-                            var cur = start;
-                            times = []
-                            while (cur.isBefore(end)) {
-                                times.push('' + cur.toDate());
-                                cur.add(30, 'minute');
-                            }
-                            var eventTimeSlots = times.map(function(time) {
-                                return '(' + eventID + ', ' + time + ', ' + DEFAULT_NUM_NEEDED + ', ' + 0 + ')';
-                            }).join();
-                            var timeSlotsQuery = 'INSERT INTO time_slot \
-                                                  (eventID, startTime, num_needed, num_confirmed) \
-                                                  VALUES ' + eventTimeSlots;
-                            database.query(timeSlotsQuery, function(err, dbRes) {
-                                callback(err, times);
-                            });
+                        var skillRequestValues = skills.map(function(skill) {
+                            return '(' + eventID + ', ' + skill + ')';
+                        }).join();
+                        var createRequestQuery =
+                            'INSERT INTO request \
+                             (eventID, skillID) \
+                             VALUES ' + skillRequestValues;
+                        database.query(createRequestQuery,
+                                       function(err, dbRes) {
+                            callback(err, skills);
+                        });
+                    },
+                    function createTimeSlots(callback) {
+                        var DEFAULT_NUM_NEEDED = 5;
+                        var cur = start;
+                        times = [];
+                        while (cur.isBefore(end)) {
+                            times.push(cur.clone().toDate());
+                            cur.add(30, 'minutes');
                         }
-                    ],
-                    function(err, results) {
-                        if (err) {
-                            callback(err);
-                        }
-                        //if inserts are successful, results should contain event skills and time slots
-                        //CHECK USERS FOR MATCHES HERE
-                        callback(null);
+
+                        // Create a query to insert time slots, using question
+                        // mark for the time slots.
+                        var eventTimeSlots = times.map(function(time) {
+                            return '(' + eventID + ', ?,  ' +
+                                   DEFAULT_NUM_NEEDED + ', ' + 0 + ')';
+                        }).join();
+                        var timeSlotsQuery =
+                            'INSERT INTO time_slot \
+                             (eventID, startTime, num_needed, num_confirmed) \
+                             VALUES ' + eventTimeSlots;
+                        database.query(timeSlotsQuery, times,
+                                       function(err, dbRes) {
+                            callback(err, times);
+                        });
                     }
-                )
+                ],
+                function(err, results) {
+                    //if inserts are successful, results should contain event skills and time slots
+                    //CHECK USERS FOR MATCHES HERE
+                    callback(err);
+                });
             }
         ], function(err) {
             if (err) { throw err; }
