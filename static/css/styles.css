@@ -46,3 +46,10 @@ body {
 .footer > .container {
   padding: 15px 15px 0 15px;
 }
+
+/*
+ * Fix for multiselects not overlapping datetime selectors properly/
+ */
+.multiselect-container {
+  z-index: 10000;
+}
