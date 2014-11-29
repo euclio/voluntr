@@ -89,39 +89,48 @@ exports.create = function(req, res) {
                     callback(err, dbRes.insertId);
                 });
             },
-            function createSkillRequests(eventID, callback) {
-                // If we have no skills required for this event, then we're
-                // done.
-                if (skills.length === 0) { return callback(null, eventID); }
+            function insertSkillsAndTimes(eventID, callback) {
+                async.parallel(
+                    [
+                        function createSkillRequests(callback) {
+                            // If we have no skills required for this event, then we're
+                            // done.
+                            if (skills.length === 0) { return callback(null); }
 
-                var skillRequestValues = skills.map(function(skill) {
-                    return '(' + eventID + ', ' + skill + ')';
-                }).join();
-                var createRequestQuery =
-                    'INSERT INTO request \
-                     (eventID, skillID) \
-                     VALUES ' + skillRequestValues;
-                database.query(createRequestQuery, function(err, dbRes) {
-                    callback(err, eventID);
-                });
-            },
-            function createTimeSlots(eventID, callback) {
-                var DEFAULT_NUM_NEEDED = 5;
-                var cur = start;
-                times = []
-                while (cur.isBefore(end)) {
-                    times.push('' + cur.toDate());
-                    cur.add(30, 'minute');
-                }
-                var eventTimeSlots = times.map(function(time) {
-                    return '(' + eventID + ', ' + time + ', ' + DEFAULT_NUM_NEEDED + ', ' + 0 + ')';
-                }).join();
-                var timeSlotsQuery = 'INSERT INTO time_slot \
-                                      (eventID, startTime, num_needed, num_confirmed) \
-                                      VALUES ' + eventTimeSlots;
-                database.query(timeSlotsQuery, function(err, dbRes) {
-                    callback(err);
-                });
+                            var skillRequestValues = skills.map(function(skill) {
+                                return '(' + eventID + ', ' + skill + ')';
+                            }).join();
+                            var createRequestQuery =
+                                'INSERT INTO request \
+                                 (eventID, skillID) \
+                                 VALUES ' + skillRequestValues;
+                            database.query(createRequestQuery, function(err, dbRes) {
+                                callback(err);
+                            });
+                        },
+                        function createTimeSlots(callback) {
+                            var DEFAULT_NUM_NEEDED = 5;
+                            var cur = start;
+                            times = []
+                            while (cur.isBefore(end)) {
+                                times.push('' + cur.toDate());
+                                cur.add(30, 'minute');
+                            }
+                            var eventTimeSlots = times.map(function(time) {
+                                return '(' + eventID + ', ' + time + ', ' + DEFAULT_NUM_NEEDED + ', ' + 0 + ')';
+                            }).join();
+                            var timeSlotsQuery = 'INSERT INTO time_slot \
+                                                  (eventID, startTime, num_needed, num_confirmed) \
+                                                  VALUES ' + eventTimeSlots;
+                            database.query(timeSlotsQuery, function(err, dbRes) {
+                                callback(err);
+                            });
+                        }
+                    ],
+                    function(err, results) {
+                        callback(err);
+                    }
+                )
             }
         ], function(err) {
             if (err) { throw err; }
