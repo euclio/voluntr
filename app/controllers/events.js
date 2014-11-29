@@ -105,7 +105,7 @@ exports.create = function(req, res) {
                                  (eventID, skillID) \
                                  VALUES ' + skillRequestValues;
                             database.query(createRequestQuery, function(err, dbRes) {
-                                callback(err);
+                                callback(err, skills);
                             });
                         },
                         function createTimeSlots(callback) {
@@ -123,12 +123,17 @@ exports.create = function(req, res) {
                                                   (eventID, startTime, num_needed, num_confirmed) \
                                                   VALUES ' + eventTimeSlots;
                             database.query(timeSlotsQuery, function(err, dbRes) {
-                                callback(err);
+                                callback(err, times);
                             });
                         }
                     ],
                     function(err, results) {
-                        callback(err);
+                        if (err) {
+                            callback(err);
+                        }
+                        //if inserts are successful, results should contain event skills and time slots
+                        //CHECK USERS FOR MATCHES HERE
+                        callback(null);
                     }
                 )
             }
