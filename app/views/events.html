@@ -3,7 +3,27 @@
 {% block content %}
 <div class="container">
   <div class="container">
-    <h1>Your Events</h1>
+    <h1>Events</h1>
+    <div class="container">
+      <form class="form-inline" action="/events" method="get">
+        <div class="form-group">
+          <label class="sr-only" for="eventFilter">Event Filter</label>
+          <select id="eventFilter" name="which" class="form-control">
+            <option value="user">My Events</option>
+            <option value="all">All Events</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="datePicker">Day</label>
+          <input id="datePicker" name="date" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="keywords">Keywords</label>
+          <input id="keywords" name="keywords" class="form-control" placeholder="Keywords">
+        </div>
+        <button class="form-control btn btn-primary" type="submit">Filter</button>
+      </form>
+    </div>
     <ul class="media-list">
       {% for event in events %}
         <li class="media">
@@ -29,4 +49,15 @@
     </nav>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  $(function() {
+    $('#datePicker')
+        .attr('placeholder', new Date().toLocaleDateString())
+        .datepicker();
+  });
+</script>
 {% endblock %}
