@@ -18,6 +18,8 @@ module.exports = function(app, passport) {
 
     app.get('/events', requireLogin, events.index);
 
+    app.get('/events/:eventID', requireLogin, events.page);
+
     app.get('/events/add', requireLogin, coordinatorOnly, events.new);
 
     app.post('/events/add', requireLogin, coordinatorOnly, events.create);
