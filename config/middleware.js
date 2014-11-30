@@ -23,3 +23,14 @@ exports.coordinatorOnly = function(req, res, next) {
         return res.status(403).send('Volunteers may not create events.');
     }
 };
+
+/*
+ * Routes that should only be accessed by a volunteer.
+ */
+exports.volunteerOnly = function(req, res, next) {
+    if (req.user.role === 'volunteer') {
+        return next();
+    } else {
+        return res.status(403).send('Coordinators may not access this route.');
+    }
+};

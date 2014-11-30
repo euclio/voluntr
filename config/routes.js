@@ -1,9 +1,11 @@
 var events = require('../app/controllers/events');
+var ratings = require('../app/controllers/ratings');
 var users = require('../app/controllers/users');
 var middleware = require('./middleware');
 
 var requireLogin = middleware.requireLogin;
 var coordinatorOnly = middleware.coordinatorOnly;
+var volunteerOnly = middleware.volunteerOnly;
 
 module.exports = function(app, passport) {
     app.use(middleware.injectUser);
@@ -23,6 +25,8 @@ module.exports = function(app, passport) {
     app.get('/register', users.register);
 
     app.post('/register', users.create);
+
+    app.get('/rate', requireLogin, volunteerOnly, ratings.rateCoordinator);
 
     app.get('/login', users.login);
 

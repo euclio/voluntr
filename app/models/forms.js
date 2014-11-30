@@ -24,6 +24,18 @@ module.exports.addEventForm = forms.create({
     })
 });
 
+module.exports.reviewForm = forms.create({
+    review: fields.string({
+        required: validators.required('The review body is required.'),
+        widget: widgets.textarea({
+            classes: ['input-with-feedback'],
+            rows: 5
+        }),
+        errorAfterField: true,
+        validators: [validators.maxlength(300)]
+    })
+});
+
 module.exports.registerForm = forms.create({
     name: fields.string({
         required: validators.required('Name is required.'),
