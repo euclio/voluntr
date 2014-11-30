@@ -1,9 +1,8 @@
 var mysql = require('mysql');
 
-var connection = mysql.createConnection({
-    host: 'localhost',
-    database: 'test'
-});
+var nconf = require('./nconf');
+
+var connection = mysql.createConnection(nconf.get('DB_OPTIONS'));
 
 connection.connect(function(err) {
     if (err) {
