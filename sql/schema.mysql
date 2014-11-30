@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS registers_for, time_slot, request,
+DROP TABLE IF EXISTS match, registers_for, time_slot, request,
                      specifies_time_available, indicate, organize,
                      receives_review, event, user, skill, review;
 
@@ -71,3 +71,9 @@ CREATE TABLE receives_review(userID INT NOT NULL,
                     PRIMARY KEY(userID, reviewID),
                     FOREIGN KEY(userID) REFERENCES user(userID),
                     FOREIGN KEY(reviewID) REFERENCES review(reviewID));
+
+CREATE TABLE match(userID INT NOT NULL,
+                    eventID INT NOT NULL,
+                    PRIMARY KEY (userID),
+                    FOREIGN KEY (userID) REFERENCES user(userID),
+                    FOREIGN KEY (eventID) REFERENCES event(eventID));
