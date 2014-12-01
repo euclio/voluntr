@@ -21,6 +21,13 @@ module.exports.addEventForm = forms.create({
         widget: widgets.text({ classes: ['input-with-feedback'] }),
         errorAfterField: true,
         validators: [validators.maxlength(50)]
+    }),
+    volunteers_desired: fields.number({
+        required: validators.required('Must specify number of volunteers desired.'),
+        label: 'Number of Volunteers Desired',
+        widget: widgets.number({ classes: ['input-with-feedback'] }),
+        errorAfterField: true,
+        validators: [validators.integer()]
     })
 });
 
