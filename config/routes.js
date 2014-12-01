@@ -28,7 +28,9 @@ module.exports = function(app, passport) {
 
     app.post('/register', users.create);
 
-    app.get('/rate', requireLogin, volunteerOnly, ratings.rateCoordinator);
+    app.get('/rate/:userID', requireLogin, volunteerOnly, ratings.rateCoordinator);
+
+    app.post('/rate/:userID', requireLogin, volunteerOnly, ratings.post);
 
     app.get('/login', users.login);
 

@@ -18,7 +18,7 @@
 {% block content %}
 <div class="container">
   <h1>Rate Your Coordinator</h1>
-  <form action="/rate" method="post">
+  <form action="/rate/{{ coordinator.userID }}" method="post">
     <div id="stars"></div>
     {{ form|safe }}
     <button class="btn btn-primary" type="submit">Submit Your Rating</button>
