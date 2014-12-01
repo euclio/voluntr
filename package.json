@@ -10,6 +10,7 @@
     "connect-flash": "^0.1.1",
     "express": "^4.10.0",
     "express-flash": "0.0.2",
+    "express-mysql-session": "^0.3.1",
     "express-session": "^1.9.1",
     "forms": "^1.0.0",
     "moment": "^2.8.3",

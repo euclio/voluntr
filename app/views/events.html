@@ -31,7 +31,7 @@
             <img class="media-object" src="http://placehold.it/64x64" alt="event photo">
           </a>
           <div class="media-body">
-            <h4 class="media-heading">{{ event.title }}</h4>
+            <a href="/events/{{ event.eventID }}"><h4 class="media-heading">{{ event.title }}</h4></a>
             <p>{{ event.description }}</p>
             <small>{{ moment(event.startTime).format('hh:mma, MMMM DD') }} &mdash; {{ moment(event.endTime).format('hh:mma, MMMM DD') }}</small>
           </div>

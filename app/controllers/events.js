@@ -158,3 +158,12 @@ exports.create = function(req, res) {
         });
     }
 };
+
+exports.page = function(req, res) {
+    var getEventQuery =
+        'SELECT * FROM event WHERE eventID = ?';
+    database.query(getEventQuery, req.params.eventID, function(err, rows) {
+        if (err) { throw err; }
+        res.render('event', { event: rows[0] });
+    });
+};
