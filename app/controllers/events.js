@@ -77,6 +77,8 @@ exports.create = function(req, res) {
 
         var skills = util.parseMultiArray(req.body.skills);
 
+        var num_needed = req.body.volunteers_desired;
+
         async.waterfall([
             function createEvent(callback) {
                 var createEventQuery =
@@ -109,7 +111,6 @@ exports.create = function(req, res) {
                         });
                     },
                     function createTimeSlots(callback) {
-                        var DEFAULT_NUM_NEEDED = 5;
                         var cur = start;
                         times = [];
                         while (cur.isBefore(end)) {
@@ -121,7 +122,7 @@ exports.create = function(req, res) {
                         // mark for the time slots.
                         var eventTimeSlots = times.map(function(time) {
                             return '(' + eventID + ', ?,  ' +
-                                   DEFAULT_NUM_NEEDED + ', ' + 0 + ')';
+                                   num_needed + ', ' + 0 + ')';
                         }).join();
                         var timeSlotsQuery =
                             'INSERT INTO time_slot \
@@ -134,15 +135,35 @@ exports.create = function(req, res) {
                     }
                 ],
                 function(err, results) {
-                    //if inserts are successful, results should contain event skills and time slots
-                    //CHECK USERS FOR MATCHES HERE
-                    callback(err);
+                    if (err) { callback(err); }
+                    callback(null, eventID);
                 });
             }
+            /*,
+            function findMatchingUsers(eventID, callback) {
+                //we have eventID
+                var matchingQuery = '';
+                database.query(matchingQuery,
+                    function(err, dbRes) {
+                        //get users info from dbRes
+                        //put in callback
+                        callback(err, );
+                    });
+            }
+        */
         ], function(err) {
             if (err) { throw err; }
             req.flash('success', 'Event successfully added.');
             res.redirect('/events/add');
         });
     }
+};
+
+exports.page = function(req, res) {
+    var getEventQuery =
+        'SELECT * FROM event WHERE eventID = ?';
+    database.query(getEventQuery, req.params.eventID, function(err, rows) {
+        if (err) { throw err; }
+        res.render('event', { event: rows[0] });
+    });
 };

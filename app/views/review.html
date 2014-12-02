@@ -1,0 +1,27 @@
+{% extends "layouts/default.html" %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/components/raty/lib/jquery.raty.css">
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/components/raty/lib/jquery.raty.js"></script>
+<script>
+  $(function() {
+    $("#stars").raty({ starType: 'i' });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Rate Your Coordinator</h1>
+  <form action="/rate/{{ coordinator.userID }}" method="post">
+    <div id="stars"></div>
+    {{ form|safe }}
+    <button class="btn btn-primary" type="submit">Submit Your Rating</button>
+  </form>
+</div>
+{% endblock %}

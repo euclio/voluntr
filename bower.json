@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "bootstrap-multiselect": "~0.9.10",
-    "datetimepicker": "~2.4.1"
+    "datetimepicker": "~2.4.1",
+    "raty": "~2.7.0"
   }
 }
