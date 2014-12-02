@@ -61,7 +61,7 @@ CREATE TABLE organize(userID INT NOT NULL,
 CREATE TABLE registers_for(userID INT NOT NULL,
                     eventID INT NOT NULL,
                     startTime DATETIME NOT NULL,
-                    confirmed BOOLEAN NOT NULL,
+                    assigned BOOLEAN NOT NULL,
                     PRIMARY KEY(userID, eventID, startTime),
                     FOREIGN KEY(userID) REFERENCES user(userID),
                     FOREIGN KEY(eventID, startTime) REFERENCES time_slot(eventID, startTime));
