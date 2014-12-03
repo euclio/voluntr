@@ -24,7 +24,9 @@ module.exports = function(app, passport) {
 
     app.get('/events/:eventID', requireLogin, events.page);
 
-    app.post('/events/:eventID/register', requireLogin, events.register);
+    app.post('/events/:eventID/register', requireLogin, volunteerOnly, events.register);
+
+    app.post('/events/:eventID/assign', requireLogin, coordinatorOnly, events.assign);
 
     app.get('/register', users.register);
 

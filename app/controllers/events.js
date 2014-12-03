@@ -1,5 +1,6 @@
 var async = require('async');
 var moment = require('moment');
+    require('twix');
 var mysql = require('mysql');
 
 var database = require('../../config/database');
@@ -172,26 +173,43 @@ exports.page = function(req, res) {
             });
         },
         timeslots: function(callback) {
+            // This query retrieves all timeslots and information for every
+            // user who has registered for at least one timeslot. An additional
+            // field 'selected' is added if the user has registered for that
+            // timeslot.
             var getTimeslotsQuery =
-                'SELECT *, EXISTS( \
+                'SELECT u.userID, name, ts.*, EXISTS( \
                     SELECT * \
-                    FROM registers_for AS rf \
-                    WHERE rf.eventID = ts.eventID \
-                        AND rf.userID = ? \
-                        AND rf.startTime = ts.startTime) AS selected \
-                 FROM time_slot AS ts \
-                 WHERE ts.eventID = ?';
-            var params = [req.user.userID, req.params.eventID];
-            database.query(getTimeslotsQuery, params,
+                    FROM registers_for AS rf2 \
+                    WHERE rf2.eventID = ts.eventID \
+                        AND rf2.userID = rf1.userID \
+                        AND rf2.startTime = ts.startTime) AS selected \
+                 FROM time_slot AS ts, registers_for AS rf1, user AS u \
+                 WHERE ts.eventID = ? \
+                    AND ts.eventID = rf1.eventID \
+                    AND u.userID = rf1.userID \
+                 GROUP BY rf1.userID, ts.startTime';
+            database.query(getTimeslotsQuery, [req.params.eventID],
                            function(err, rows) {
                 callback(err, rows);
             });
         },
+        numTimeslots: function(callback) {
+            var numTimeslotsQuery =
+                'SELECT COUNT(startTime) AS numTimeslots \
+                 FROM time_slot \
+                 WHERE eventID = ?';
+            database.query(numTimeslotsQuery, [req.params.eventID],
+                           function(err, rows) {
+                callback(err, rows[0].numTimeslots);
+            });
+        }
     }, function(err, results) {
         if (err) { throw err; }
         res.render('event', {
             event: results.event,
             timeslots: results.timeslots,
+            numTimeslots: results.numTimeslots,
             moment: moment
         });
     });
@@ -223,7 +241,6 @@ exports.register = function(req, res) {
 
             var newRegistrationQuery =
                 'INSERT INTO registers_for VALUES ' + registrationValues;
-            console.log(newRegistrationQuery);
             database.query(newRegistrationQuery, function(err, dbRes) {
                 callback(err);
             });
@@ -234,4 +251,10 @@ exports.register = function(req, res) {
                   'Successfully updated registration for this event.');
         res.redirect('/events/' + eventID);
     });
+};
+
+exports.assign = function(req, res) {
+    var timeslotsByUser = JSON.parse(req.body.timeslots);
+    console.log(timeslotsByUser);
+    res.redirect('/events/' + req.params.eventID);
 };

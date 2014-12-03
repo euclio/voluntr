@@ -8,6 +8,7 @@
 {% block scripts %}
 {{ super() }}
 <script src="/static/js/registrationmatrix.js"></script>
+<script src="/static/js/assignmentmatrix.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -32,14 +33,18 @@
           <thead>
             <tr>
               {% for timeslot in timeslots %}
-                <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
+                {% if timeslot.userID == user.userID %}
+                  <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
+                {% endif %}
               {% endfor %}
             </tr>
           </thead>
           <tbody>
             <tr>
               {% for timeslot in timeslots %}
-                <td data-timestamp="{{ timeslot.startTime }}" {% if timeslot.selected %}class="selected"{% endif %}>{{ timeslot.num_confirmed }}/{{ timeslot.num_needed }}</td>
+                {% if timeslot.userID == user.userID %}
+                  <td data-timestamp="{{ timeslot.startTime }}" {% if timeslot.selected %}class="selected"{% endif %}>{{ timeslot.num_confirmed }}/{{ timeslot.num_needed }}</td>
+                {% endif %}
               {% endfor %}
             </tr>
         </table>
@@ -47,6 +52,38 @@
       <button type="submit" class="btn btn-primary">Register</button>
     </form>
     <small>Note: The numbers within each cell indicate how many slots have been assigned to volunteers. You may register for slots that are full, but please note that you are less likely to be assigned to those slots.</small>
+  {% else %}
+    <div class="container">
+      <form action="/events/{{ event.eventID }}/assign" method="post">
+        <div class="form-group">
+          <label for="registration">Timeslot Assignments</label>
+          <table class="matrix assignmentMatrix">
+            <thead>
+              <tr>
+                <td>Volunteer</td>
+                {% for timeslot in timeslots.slice(0, numTimeslots) %}
+                  <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for userTimeslots in timeslots|batch(numTimeslots) %}
+                <tr>
+                {% for timeslot in userTimeslots %}
+                  {% if loop.index == 1 %}
+                    {% set firstTimeslot = userTimeslots|first %}
+                    <td>{{ firstTimeslot.name }}</td>
+                  {% endif %}
+                  <td data-timeslot="{{ timeslot.startTime }}" data-user="{{ timeslot.userID }}">{% if timeslot.selected %}<input type="checkbox" name="registration">{% endif %}</td>
+                {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <button type="submit" class="btn btn-primary">Assign</button>
+      </form>
+    </div>
   {% endif %}
 </div>
 {% endblock %}
