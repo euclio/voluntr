@@ -27,6 +27,7 @@ exports.index = function(req, res) {
             var eventsQuery =
                 'SELECT * \
                  FROM event \
+                 ORDER BY startTime DESC \
                  LIMIT ? OFFSET ?';
             database.query(eventsQuery, [perPage, currentPage * perPage],
                            function(err, rows) {
