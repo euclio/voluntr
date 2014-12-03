@@ -160,10 +160,29 @@ exports.create = function(req, res) {
 };
 
 exports.page = function(req, res) {
-    var getEventQuery =
-        'SELECT * FROM event WHERE eventID = ?';
-    database.query(getEventQuery, req.params.eventID, function(err, rows) {
+    async.parallel({
+        event: function(callback) {
+            var getEventQuery =
+                'SELECT * FROM event WHERE eventID = ? LIMIT 1';
+            database.query(getEventQuery, req.params.eventID,
+                           function(err, rows) {
+                callback(err, rows[0]);
+            });
+        },
+        timeslots: function(callback) {
+            var getTimeslotsQuery =
+                'SELECT * FROM time_slot WHERE eventID = ?';
+            database.query(getTimeslotsQuery, req.params.eventID,
+                           function(err, rows) {
+                callback(err, rows);
+            });
+        }
+    }, function(err, results) {
         if (err) { throw err; }
-        res.render('event', { event: rows[0] });
+        res.render('event', {
+            event: results.event,
+            timeslots: results.timeslots,
+            moment: moment
+        });
     });
 };

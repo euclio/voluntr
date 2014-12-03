@@ -1,5 +1,15 @@
 {% extends "layouts/default.html" %}
 
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/matrix.css">
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/registrationmatrix.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
   <h1>{{ event.title }}</h1>
@@ -13,5 +23,23 @@
       <p>{{ event.description }}</p>
     </div>
   </div>
+  {% if user.role == 'volunteer' %}
+    {# Only volunteers are allowed to register for events #}
+    <table class="matrix registrationMatrix">
+      <thead>
+        <tr>
+          {% for timeslot in timeslots %}
+            <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          {% for timeslot in timeslots %}
+          <td {% if timeslot.selected %}class="selected"{% endif %}>{{ timeslot.num_confirmed }}/{{ timeslot.num_needed }}</td>
+          {% endfor %}
+        </tr>
+    </table>
+  {% endif %}
 </div>
 {% endblock %}

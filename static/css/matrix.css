@@ -1,4 +1,4 @@
-.timematrix table {
+.matrix table {
   border-collapse: collapse;
 }
 
@@ -6,7 +6,7 @@
   background-color: green;
 }
 
-.timematrix td {
+.matrix td {
   border: solid black 1px;
   width: 2em;
   -webkit-user-select: none;
@@ -14,4 +14,6 @@
   -ms-user-select: none;
   user-select: none;
   cursor: default;
+  text-align: center;
+  vertical-align: middle;
 }
