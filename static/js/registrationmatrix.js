@@ -29,8 +29,30 @@ function addListeners($table) {
     });
 }
 
+function getSelected() {
+    var selectedTimes = [];
+
+    $('table.registrationMatrix tbody td').each(function(index, element) {
+        if ($(element).hasClass('selected')) {
+            selectedTimes.push($(element).data('timestamp'));
+        }
+    });
+
+    return selectedTimes;
+}
+
 $(document).ready(function() {
     var $table = $('table.registrationMatrix');
-    console.log($table);
     addListeners($table);
+
+    $('form:has(table.registrationMatrix)').submit(function() {
+        var times = getSelected();
+        for (var i = 0; i < times.length; i++) {
+            var time = $('<input>')
+                            .attr('type', 'hidden')
+                            .attr('name', 'timeslots')
+                            .attr('value', times[i]);
+            $(this).append(time);
+        }
+    });
 });

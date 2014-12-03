@@ -1,0 +1,23 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container">
+  <table>
+    <thead>
+      <tr>
+      <th>Volunteer</th>
+      {% for time in timeslots %}
+      <th>{{ time.toString() }}</th>
+      {% endfor %}
+    </thead>
+    <tbody>
+      {% for volunteer in volunteers %}
+      <td>{{ volunteer.name }}</td>
+        {% for time in range(timeslots.length) %}
+        <td></td>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

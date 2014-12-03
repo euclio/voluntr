@@ -1,5 +1,6 @@
 var async = require('async');
 var moment = require('moment');
+var mysql = require('mysql');
 
 var database = require('../../config/database');
 var forms = require('../models/forms');
@@ -171,12 +172,20 @@ exports.page = function(req, res) {
         },
         timeslots: function(callback) {
             var getTimeslotsQuery =
-                'SELECT * FROM time_slot WHERE eventID = ?';
-            database.query(getTimeslotsQuery, req.params.eventID,
+                'SELECT *, EXISTS( \
+                    SELECT * \
+                    FROM registers_for AS rf \
+                    WHERE rf.eventID = ts.eventID \
+                        AND rf.userID = ? \
+                        AND rf.startTime = ts.startTime) AS selected \
+                 FROM time_slot AS ts \
+                 WHERE ts.eventID = ?';
+            var params = [req.user.userID, req.params.eventID];
+            database.query(getTimeslotsQuery, params,
                            function(err, rows) {
                 callback(err, rows);
             });
-        }
+        },
     }, function(err, results) {
         if (err) { throw err; }
         res.render('event', {
@@ -184,5 +193,44 @@ exports.page = function(req, res) {
             timeslots: results.timeslots,
             moment: moment
         });
+    });
+};
+
+exports.register = function(req, res) {
+    var registration = util.parseMultiArray(req.body.timeslots);
+    var eventID = req.params.eventID;
+
+    async.series([
+        function deleteRegistration(callback) {
+            var deleteRegistrationQuery =
+                'DELETE FROM registers_for WHERE userID = ? AND eventID = ?';
+            database.query(deleteRegistrationQuery, [req.user.userID, eventID],
+                           function(err, dbRes) {
+                callback(err);
+            });
+        },
+        function insertNewRegistration(callback) {
+            if (registration.length === 0) { return callback(null); }
+
+            var registrationValues = registration.map(function(timeslot) {
+                return '(' +
+                    req.user.userID + ',' +
+                    mysql.escape(eventID) + ',' +
+                    mysql.escape(new Date(timeslot)) + ',' +
+                    mysql.escape(false) + ')';
+            }).join();
+
+            var newRegistrationQuery =
+                'INSERT INTO registers_for VALUES ' + registrationValues;
+            console.log(newRegistrationQuery);
+            database.query(newRegistrationQuery, function(err, dbRes) {
+                callback(err);
+            });
+        }
+    ], function(err) {
+        if (err) { throw err; }
+        req.flash('success',
+                  'Successfully updated registration for this event.');
+        res.redirect('/events/' + eventID);
     });
 };
