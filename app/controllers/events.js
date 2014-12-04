@@ -264,12 +264,12 @@ exports.assign = function(req, res) {
     async.each(users,
         function(user, callback) {
             var times = timeslotsByUser[user];
-            console.log(user, eventID, time);
+            console.log(user, eventID, times);
             var updateQuery =
             'UPDATE registers_for \
                 SET confirmed = 1 \
             WHERE userID = ? AND eventID = ? AND startTime IN ?';
-            database.query(updateQuery, [user, eventID, time], function(err, dbRes) {
+            database.query(updateQuery, [user, eventID, times], function(err, dbRes) {
                 callback(err);
             })
         },
