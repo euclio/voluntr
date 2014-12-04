@@ -216,8 +216,11 @@ exports.page = function(req, res) {
 };
 
 exports.register = function(req, res) {
+    console.log(req.body);
     var registration = util.parseMultiArray(req.body.timeslots);
     var eventID = req.params.eventID;
+
+    console.log(registration);
 
     async.series([
         function deleteRegistration(callback) {
@@ -255,6 +258,25 @@ exports.register = function(req, res) {
 
 exports.assign = function(req, res) {
     var timeslotsByUser = JSON.parse(req.body.timeslots);
-    console.log(timeslotsByUser);
-    res.redirect('/events/' + req.params.eventID);
+    users = Object.keys(timeslotsByUser);
+    var eventID = req.params.eventID;
+
+    async.each(users,
+        function(user, callback) {
+            var times = timeslotsByUser[user];
+            console.log(user, eventID, time);
+            var updateQuery =
+            'UPDATE registers_for \
+                SET confirmed = 1 \
+            WHERE userID = ? AND eventID = ? AND startTime IN ?';
+            database.query(updateQuery, [user, eventID, time], function(err, dbRes) {
+                callback(err);
+            })
+        },
+        function(err) {
+            if (err) { throw err; }
+            console.log("Assignment completed successfully");
+        }
+    );
+    res.redirect('/events/' + eventID);
 };
