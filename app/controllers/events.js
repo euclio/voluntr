@@ -194,21 +194,25 @@ exports.page = function(req, res) {
                 params = [req.user.userID, req.params.eventID];
             } else {
                 // If the user is a coordinator, we want to return all the
-                // timeslots and information for every user who has registered
-                // for at least one timeslot. An additional field 'selected'
-                // is added if the user has registered for that timeslot.
+                // timeslots for each user who has registered for at least one
+                // timeslot. We also return a field 'assigned' that is
+                //      1) null - when the user did not register for that slot
+                //      2) false - when the coordinator has not assigned that
+                //                 slot
+                //      3) true - when the coordinator assigned that slot.
                 getTimeslotsQuery =
-                    'SELECT u.userID, name, ts.*, EXISTS( \
-                        SELECT * \
+                    'SELECT u.*, ts.*, (\
+                        SELECT assigned \
                         FROM registers_for AS rf2 \
                         WHERE rf2.eventID = ts.eventID \
-                            AND rf2.userID = rf1.userID \
-                            AND rf2.startTime = ts.startTime) AS selected \
-                     FROM time_slot AS ts, registers_for AS rf1, user AS u \
+                            AND rf2.startTime = ts.startTime) AS assigned \
+                     FROM time_slot AS ts, user AS u \
                      WHERE ts.eventID = ? \
-                        AND ts.eventID = rf1.eventID \
-                        AND u.userID = rf1.userID \
-                     GROUP BY rf1.userID, ts.startTime';
+                        AND EXISTS( \
+                            SELECT * \
+                            FROM registers_for AS rf1 \
+                            WHERE rf1.userID = u.userID \
+                                AND rf1.eventID = ts.eventID)';
                 params = [req.params.eventID];
             }
 
@@ -287,7 +291,7 @@ exports.assign = function(req, res) {
                 time = new Date(time);
                 var updateQuery =
                 'UPDATE registers_for \
-                    SET confirmed = 1 \
+                    SET assigned = 1 \
                 WHERE userID = ? AND eventID = ? AND startTime = ?';
                 database.query(updateQuery, [user, eventID, time], function(err, dbRes) {
                     callback(err);

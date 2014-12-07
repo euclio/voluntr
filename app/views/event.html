@@ -53,31 +53,37 @@
       <form action="/events/{{ event.eventID }}/assign" method="post">
         <div class="form-group">
           <label for="registration">Timeslot Assignments</label>
-          <table class="matrix assignmentMatrix">
-            <thead>
-              <tr>
-                <td>Volunteer</td>
-                {% for timeslot in timeslots.slice(0, numTimeslots) %}
-                  <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
-                {% endfor %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for userTimeslots in timeslots|batch(numTimeslots) %}
+          {% if timeslots.length > 0 %}
+            <table class="matrix assignmentMatrix">
+              <thead>
                 <tr>
-                {% for timeslot in userTimeslots %}
-                  {% if loop.index == 1 %}
-                    {% set firstTimeslot = userTimeslots|first %}
-                    <td>{{ firstTimeslot.name }}</td>
-                  {% endif %}
-                  <td data-timeslot="{{ timeslot.startTime }}" data-user="{{ timeslot.userID }}">{% if timeslot.selected %}<input type="checkbox" name="registration">{% endif %}</td>
-                {% endfor %}
+                  <td>Volunteer</td>
+                  {% for timeslot in timeslots.slice(0, numTimeslots) %}
+                    <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
+                  {% endfor %}
                 </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {% for userTimeslots in timeslots|batch(numTimeslots) %}
+                  <tr>
+                  {% for timeslot in userTimeslots %}
+                    {% if loop.index == 1 %}
+                      {% set firstTimeslot = userTimeslots|first %}
+                      <td>{{ firstTimeslot.name }}</td>
+                    {% endif %}
+                    <td data-timeslot="{{ timeslot.startTime }}" data-user="{{ timeslot.userID }}">{% if timeslot.assigned != null %}<input type="checkbox" name="registration" {% if timeslot.assigned %}checked{% endif %}>{% endif %}</td>
+                  {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+          <p>Sorry, no volunteers have registered for your event yet.</p>
+          {% endif %}
         </div>
-        <button type="submit" class="btn btn-primary">Assign</button>
+        {% if timeslots.length > 0 %}
+          <button type="submit" class="btn btn-primary">Assign</button>
+        {% endif %}
       </form>
     </div>
   {% endif %}
