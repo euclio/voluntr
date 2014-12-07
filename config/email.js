@@ -1,11 +1,7 @@
 var nodemailer = require('nodemailer');
+var smtpTransport = require('nodemailer-smtp-transport');
 
 var nconf = require('./nconf');
 
-exports.transporter = nodemailer.createTransport({
-    service: nconf.get('VOLUNTR_EMAIL_SERVICE'),
-    auth: {
-        user: nconf.get('VOLUNTR_EMAIL_ADDRESS'),
-        pass: nconf.get('VOLUNTR_EMAIL_PASSWORD')
-    }
-});
+exports.transporter = nodemailer.createTransport(
+    smtpTransport(nconf.get("SMTP_OPTIONS")));

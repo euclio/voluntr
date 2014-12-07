@@ -2,5 +2,9 @@
     "DB_OPTIONS": {
         "host": "localhost",
         "database": "test"
+    },
+    "SMTP_OPTIONS": {
+        "host": "localhost",
+        "port": 1025
     }
 }

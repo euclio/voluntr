@@ -1,10 +1,12 @@
 var async = require('async');
+var format = require('string-format');
 var moment = require('moment');
     require('twix');
 var mysql = require('mysql');
 
 var database = require('../../config/database');
 var forms = require('../models/forms');
+var transporter = require('../../config/email').transporter;
 var util = require('../util');
 
 exports.index = function(req, res) {
@@ -162,13 +164,31 @@ exports.create = function(req, res) {
                                 AND DAYOFWEEK(ts.startTime) = DAYOFWEEK(sta.startTime))';
                 var params = [eventID, eventID];
                 database.query(matchingQuery, params, function(err, rows) {
-                    callback(err, rows);
+                    callback(err, eventID, rows);
                 });
             }
-        ], function(err, matchingUsers) {
+        ], function(err, eventID, matchingUsers) {
             if (err) { throw err; }
             req.flash('success', 'Event successfully added.');
             res.redirect('/events/add');
+
+            // Email the matching users to notify them of the match.
+            for(var i = 0; i < matchingUsers.length; i++) {
+                var message =
+                    ('Our system has found an event that you might be ' +
+                     'interested in. Please visit <a href="{}">the event ' +
+                     'page</a> to see your match.').format(
+                        'http://' + req.headers.host + '/events/' + eventID);
+
+                var mailOptions = {
+                    from: 'nocontact@' + req.headers.host,
+                    to: matchingUsers[i].email,
+                    subject: 'You\'ve been matched!',
+                    html: message
+                };
+
+                transporter.sendMail(mailOptions);
+            }
         });
     }
 };

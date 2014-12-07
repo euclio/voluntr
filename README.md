@@ -28,6 +28,10 @@ Running the Application
     
     All of these tasks are run if you only type `grunt`.
 
+5. Run the email server.
+
+        python -m smtpd -n -c DebuggingServer localhost:1025
+
 5. Run the server, and provide a secret key to use either as an environment
 variable or a command-line parameter.
 
