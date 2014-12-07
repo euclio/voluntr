@@ -21,7 +21,7 @@ def generate_events(num_events):
         name = 'Event %d' % i
         description = 'This event is awesome'
         location = 'Pomona College'
-        start_time = datetime.utcnow()
+        start_time = datetime.now().replace(second=0)
         end_time = start_time + timedelta(hours=3)
         return (name, description, location, start_time, end_time)
 

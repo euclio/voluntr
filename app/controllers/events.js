@@ -70,8 +70,8 @@ exports.create = function(req, res) {
             return res.redirect('/events/add');
         }
 
-        var start = moment(req.body.startTime, 'X');
-        var end = moment(req.body.endTime, 'X');
+        var start = moment(req.body.startTime, 'X').seconds(0);
+        var end = moment(req.body.endTime, 'X').seconds(0);
 
         if (!start.isBefore(end)) {
             req.flash("error", 'Start time must be before end time.');
@@ -141,20 +141,31 @@ exports.create = function(req, res) {
                     if (err) { callback(err); }
                     callback(null, eventID);
                 });
-            }
-            /*,
+            },
             function findMatchingUsers(eventID, callback) {
-                //we have eventID
-                var matchingQuery = '';
-                database.query(matchingQuery,
-                    function(err, dbRes) {
-                        //get users info from dbRes
-                        //put in callback
-                        callback(err, );
-                    });
+                var matchingQuery =
+                    'SELECT u.* \
+                     FROM user AS u \
+                     WHERE ( \
+                        SELECT COUNT(*) \
+                        FROM request AS r, indicate AS i \
+                        WHERE r.eventID = ? \
+                            AND u.userID = i.userID \
+                            AND r.skillID = i.skillID) > 1 \
+                        AND EXISTS( \
+                            SELECT * \
+                            FROM specifies_time_available AS sta, \
+                                 time_slot AS ts \
+                            WHERE ts.eventID = ? \
+                                AND sta.userID = u.userID \
+                                AND TIME(ts.startTime) = TIME(sta.startTime) \
+                                AND DAYOFWEEK(ts.startTime) = DAYOFWEEK(sta.startTime))';
+                var params = [eventID, eventID];
+                database.query(matchingQuery, params, function(err, rows) {
+                    callback(err, rows);
+                });
             }
-        */
-        ], function(err) {
+        ], function(err, matchingUsers) {
             if (err) { throw err; }
             req.flash('success', 'Event successfully added.');
             res.redirect('/events/add');
