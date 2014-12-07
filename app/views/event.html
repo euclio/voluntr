@@ -33,18 +33,14 @@
           <thead>
             <tr>
               {% for timeslot in timeslots %}
-                {% if timeslot.userID == user.userID %}
-                  <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
-                {% endif %}
+                <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
               {% endfor %}
             </tr>
           </thead>
           <tbody>
             <tr>
               {% for timeslot in timeslots %}
-                {% if timeslot.userID == user.userID %}
-                  <td data-timestamp="{{ timeslot.startTime }}" {% if timeslot.selected %}class="selected"{% endif %}>{{ timeslot.num_confirmed }}/{{ timeslot.num_needed }}</td>
-                {% endif %}
+                <td data-timestamp="{{ timeslot.startTime }}" {% if timeslot.selected %}class="selected"{% endif %}>{{ timeslot.num_confirmed }}/{{ timeslot.num_needed }}</td>
               {% endfor %}
             </tr>
         </table>

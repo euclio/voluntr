@@ -173,24 +173,46 @@ exports.page = function(req, res) {
             });
         },
         timeslots: function(callback) {
-            // This query retrieves all timeslots and information for every
-            // user who has registered for at least one timeslot. An additional
-            // field 'selected' is added if the user has registered for that
-            // timeslot.
-            var getTimeslotsQuery =
-                'SELECT u.userID, name, ts.*, EXISTS( \
-                    SELECT * \
-                    FROM registers_for AS rf2 \
-                    WHERE rf2.eventID = ts.eventID \
-                        AND rf2.userID = rf1.userID \
-                        AND rf2.startTime = ts.startTime) AS selected \
-                 FROM time_slot AS ts, registers_for AS rf1, user AS u \
-                 WHERE ts.eventID = ? \
-                    AND ts.eventID = rf1.eventID \
-                    AND u.userID = rf1.userID \
-                 GROUP BY rf1.userID, ts.startTime';
-            database.query(getTimeslotsQuery, [req.params.eventID],
-                           function(err, rows) {
+            // We need to show different timeslots on the page depending on
+            // whether the user is a coordinator or volunteer.
+            var getTimeslotsQuery = null;
+            var params = null;
+
+            if (req.user.role === 'volunteer') {
+                // If the user is a volunteer, we want to return all possible
+                // timeslots for an event, and whether the current user is
+                // registered for that event or not.
+                getTimeslotsQuery =
+                    'SELECT *, EXISTS( \
+                        SELECT * \
+                        FROM registers_for AS rf \
+                        WHERE rf.eventID = ts.eventID \
+                            AND rf.userID = ? \
+                            AND rf.startTime = ts.startTime) AS selected \
+                     FROM time_slot AS ts \
+                     WHERE ts.eventID = ?';
+                params = [req.user.userID, req.params.eventID];
+            } else {
+                // If the user is a coordinator, we want to return all the
+                // timeslots and information for every user who has registered
+                // for at least one timeslot. An additional field 'selected'
+                // is added if the user has registered for that timeslot.
+                getTimeslotsQuery =
+                    'SELECT u.userID, name, ts.*, EXISTS( \
+                        SELECT * \
+                        FROM registers_for AS rf2 \
+                        WHERE rf2.eventID = ts.eventID \
+                            AND rf2.userID = rf1.userID \
+                            AND rf2.startTime = ts.startTime) AS selected \
+                     FROM time_slot AS ts, registers_for AS rf1, user AS u \
+                     WHERE ts.eventID = ? \
+                        AND ts.eventID = rf1.eventID \
+                        AND u.userID = rf1.userID \
+                     GROUP BY rf1.userID, ts.startTime';
+                params = [req.params.eventID];
+            }
+
+            database.query(getTimeslotsQuery, params, function(err, rows) {
                 callback(err, rows);
             });
         },
