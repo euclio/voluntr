@@ -49,16 +49,19 @@ def generate_skills():
 
 
 def insert_test_data(connection):
-    cursor = connection.cursor()
+    cursor = connection.cursor(buffered=True)
+    cursor.execute('DELETE FROM indicate')
+    cursor.execute('DELETE FROM event')
+    cursor.execute('DELETE FROM skill')
+    cursor.execute('DELETE FROM time_slot')
+    cursor.execute('DELETE FROM user')
 
     #testing user
-    cursor.execute('DELETE FROM user')
     users = generate_users(20)
     cursor.executemany('INSERT INTO user VALUES (NULL, %s, %s, %s, %s)',
                        users)
 
     #testing event
-    cursor.execute('DELETE FROM event')
     events = generate_events(300)
     cursor.executemany('INSERT INTO event VALUES (NULL, %s, %s, %s, %s, %s)',
                        events)
@@ -83,24 +86,22 @@ def insert_test_data(connection):
                     'Somewhere in Washington', start_event1,
                     start_event1 + multi_day))
 
+    #test time_slot
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
+                   "VALUES (%s, %s, %s, %s)",
+                   (cursor.lastrowid, start_event1, 5, 2))
+
     #testing skill
-    cursor.execute('DELETE FROM skill')
     skills = generate_skills()
     cursor.executemany('INSERT INTO skill VALUES (NULL, %s)', skills)
 
 
     #test indicate skill
-    cursor.execute('DELETE FROM indicate')
     cursor.execute("INSERT INTO indicate (userID, skillID)"
                    "VALUES (%s, %s)", (1, 3))
     cursor.execute("INSERT INTO indicate (userID, skillID)"
                    "VALUES (%s, %s)", (2, 1))
 
-    #test time_slot
-    cursor.execute('DELETE FROM time_slot')
-    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
-                   "VALUES (%s, %s, %s, %s)",
-                   (1, cursor.execute("SELECT startTime FROM event WHERE time_slot.eventID = event.eventID"), 5, 2))
 
 
     connection.commit()
