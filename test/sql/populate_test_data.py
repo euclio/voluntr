@@ -21,7 +21,7 @@ def generate_events(num_events):
         name = 'Event %d' % i
         description = 'This event is awesome'
         location = 'Pomona College'
-        start_time = datetime.utcnow()
+        start_time = datetime.now().replace(second=0)
         end_time = start_time + timedelta(hours=3)
         return (name, description, location, start_time, end_time)
 
@@ -83,8 +83,6 @@ def insert_test_data(connection):
                     'Somewhere in Washington', start_event1,
                     start_event1 + multi_day))
 
-    ## %s is values from the events array
-
     #testing skill
     cursor.execute('DELETE FROM skill')
     skills = generate_skills()
@@ -97,6 +95,12 @@ def insert_test_data(connection):
                    "VALUES (%s, %s)", (1, 3))
     cursor.execute("INSERT INTO indicate (userID, skillID)"
                    "VALUES (%s, %s)", (2, 1))
+
+    #test time_slot
+    cursor.execute('DELETE FROM time_slot')
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
+                   "VALUES (%s, %s, %s, %s)",
+                   (1, cursor.execute("SELECT startTime FROM event WHERE time_slot.eventID = event.eventID"), 5, 2))
 
 
     connection.commit()
