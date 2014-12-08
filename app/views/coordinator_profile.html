@@ -1,0 +1,17 @@
+{% extends "layouts/default.html" %}
+
+{% block content %}
+<div class="container">
+  <h1>Profile Page</h1>
+  <p>Welcome, {{ user.name }}! You are logged in as a <strong>{{ user.role }}</strong>.</p>
+  {% if averageRating != null %}
+    <h2>Reviews</h2>
+    <p><strong>You have an average rating of {{ averageRating }} stars.</strong></p>
+    <ul class="list-group">
+      {% for review in reviews %}
+      <li class="list-group-item">{{ review.rating }} stars &mdash; {{ review.comment }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}

@@ -71,7 +71,33 @@ exports.profile = function(req, res) {
             });
         });
     } else {
-        res.render('profile');
+        async.parallel({
+            reviews: function(callback) {
+                var getReviewsQuery =
+                    'SELECT review.* \
+                     FROM review, receives_review \
+                     WHERE review.reviewID = receives_review.reviewID \
+                        AND receives_review.userID = ?';
+                var params = [req.user.userID];
+                database.query(getReviewsQuery, params, function(err, rows) {
+                    callback(err, rows);
+                });
+            },
+            averageRating: function(callback) {
+                var getRatingQuery =
+                    'SELECT AVG(review.rating) AS averageRating \
+                     FROM review, receives_review \
+                     WHERE review.reviewID = receives_review.reviewID \
+                        AND receives_review.userID = ?';
+                var params = [req.user.userID];
+                database.query(getRatingQuery, params, function(err, rows) {
+                    callback(err, rows[0].averageRating);
+                });
+            }
+        }, function done(err, results) {
+            if (err) { throw err; }
+            res.render('coordinator_profile', results);
+        });
     }
 
     function getSkills(callback) {
