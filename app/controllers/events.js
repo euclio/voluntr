@@ -229,7 +229,7 @@ exports.create = function(req, res) {
                             WHERE ts.eventID = ? \
                                 AND sta.userID = u.userID \
                                 AND TIME(ts.startTime) = TIME(sta.startTime) \
-                                AND DAYOFWEEK(ts.startTime) = DAYOFWEEK(sta.startTime))';
+                                AND DAYOFWEEK(ts.startTime) = sta.dayOfWeek)';
                 var params = [eventID, eventID];
                 database.query(matchingQuery, params, function(err, rows) {
                     callback(err, eventID, rows);
