@@ -21,7 +21,7 @@ def generate_events(num_events):
         name = 'Event %d' % i
         description = 'This event is awesome'
         location = 'Pomona College'
-        start_time = datetime.now().replace(second=0)
+        start_time = datetime.now().replace(second=0, minute=30)
         end_time = start_time + timedelta(hours=3)
         return (name, description, location, start_time, end_time)
 
@@ -79,7 +79,7 @@ def insert_test_data(connection):
     multi_day = timedelta(days=2)
     #class datetime.timedelta([days[, seconds[, microseconds[, milliseconds[, minutes[, hours[, weeks]]]]]]])
     
-    start_event1 = datetime(2014, 12, 15, 18, 45)
+    start_event1 = datetime(2014, 12, 15, 18, 30)
     # datetime.time(['year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond'])
 
     #test for 30 min event
