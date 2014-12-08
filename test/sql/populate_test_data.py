@@ -49,6 +49,7 @@ def generate_skills():
 
 
 def insert_test_data(connection):
+    cursor = connection.cursor()
 
     #testing user
     cursor.execute('DELETE FROM user')
@@ -57,33 +58,31 @@ def insert_test_data(connection):
                        users)
 
     #testing event
-    cursor = connection.cursor()
     cursor.execute('DELETE FROM event')
     events = generate_events(300)
     cursor.executemany('INSERT INTO event VALUES (NULL, %s, %s, %s, %s, %s)',
                        events)
     
-    half_hour = datetime.timedelta(minutes=30)
-    multi_day = datetime.timedelta(days=2)
+    half_hour = timedelta(minutes=30)
+    multi_day = timedelta(days=2)
     #class datetime.timedelta([days[, seconds[, microseconds[, milliseconds[, minutes[, hours[, weeks]]]]]]])
     
-    start_event1 = datetime.time(2014, 12, 15, 18, 45)
+    start_event1 = datetime(2014, 12, 15, 18, 45)
     # datetime.time(['year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond'])
 
     #test for 30 min event
     cursor.execute("INSERT INTO event (eventID, title, description, location, startTime, endTime) "
-                   "VALUES (-1, '30_mins_event', 'We do magical things in this event', 'Somewhere in California', start_event1, start_event1 + half_hour)",
-                   events)
+                   "VALUES (NULL, %s, %s, %s, %s, %s)",
+                   ('30_mins_event', 'We do magical things in this event',
+                    'Somewhere in California', start_event1,
+                    start_event1 + half_hour))
     #test for a multi-day event
     cursor.execute("INSERT INTO event (eventID, title, description, location, startTime, endTime) "
-                   "VALUES (-2, 'multiDay_event', 'We do coding things in this event', 'Somewhere in Washington', start_event1, start_event1 + multi_day)",
-                   events)
-    #test for a negative startTime
-    cursor.execute("INSERT INTO event (eventID, title, description, location, startTime, endTime) "
-                   "VALUES (-3, 'neg_startTime', 'We do sales things in this event', 'Somewhere in Nevada', datetime.time(2014, 12, 15, -5, -5), datetime.time(2014, 12, 15, 11, 10)",
-                   events)
+                   "VALUES (NULL, %s, %s, %s, %s, %s)",
+                   ('multiDay_event', 'We do coding things in this event',
+                    'Somewhere in Washington', start_event1,
+                    start_event1 + multi_day))
 
-    
     ## %s is values from the events array
 
     #testing skill
@@ -95,12 +94,9 @@ def insert_test_data(connection):
     #test indicate skill
     cursor.execute('DELETE FROM indicate')
     cursor.execute("INSERT INTO indicate (userID, skillID)"
-                   "VALUES (users[1], skills)",
-                   indicate)
+                   "VALUES (%s, %s)", (1, 3))
     cursor.execute("INSERT INTO indicate (userID, skillID)"
-                   "VALUES (users[2], '')",
-                   indicate)
-    
+                   "VALUES (%s, %s)", (2, 1))
 
 
     connection.commit()
