@@ -50,8 +50,8 @@
             var row = selectedTime.hour() * 2 + selectedTime.minute() / 30;
 
             // Translate isoWeekday to 0-based array index
-            var col = selectedTime.isoWeekday() - 1;
-            col = col < 0 ? 7 : col;
+            var col = selectedTime.isoWeekday();
+            col = col > 6 ? 0 : col;
 
             // Add the selected class to the table.
             $(table.rows[row].cells[col + 1]).addClass('selected');
