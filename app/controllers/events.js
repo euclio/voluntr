@@ -10,6 +10,31 @@ var transporter = require('../../config/email').transporter;
 var util = require('../util');
 
 exports.index = function(req, res) {
+    var date = null;
+    var keywords = "";
+    var keywordArr = [];
+    if (req.query.date && req.query.date != "") date = req.query.date;
+    //remove punctuation and make array of words (separated by blank spaces)
+    if (req.query.keywords && req.query.keywords != "") {
+        keywords = req.query.keywords;
+        var punctuationless = keywords.replace(/[\.,-\/#!$%\^&\*;:{}=\-_`~()@\+\?><\[\]\+]/g, "");
+        keywords = punctuationless.replace(/\s{2,}/g,"");
+        keywordArr = keywords.split(" ");
+    }
+
+    var dateQuery = date != null ? ' AND cast(startTime as date) = ?' : "";
+
+    var keywordQuery = '';
+    for (var i = 0; i < keywordArr.length; i++) {
+        if (i==0) { keywordQuery = keywordQuery.concat(' AND ('); }
+        var keyword = keywordArr[i];
+        keywordQuery = keywordQuery.concat('description LIKE "' + keyword + '"');
+        if (i != keywordArr.length-1) { keywordQuery = keywordQuery.concat(' OR ')}
+        else { keywordQuery = keywordQuery.concat(')')}
+    }
+
+    var eventsQuery = 'SELECT * FROM event WHERE true' + dateQuery + keywordQuery;
+
     // Get the page we are on, 0-indexed
     var currentPage = (req.param('page') > 0 ? req.param('page') : 1) - 1;
 
@@ -18,21 +43,20 @@ exports.index = function(req, res) {
 
     async.waterfall([
         function getNumberOfPages(callback) {
-            var numEventsQuery =
-                'SELECT COUNT(*) AS "numEvents" \
-                 FROM event';
-            database.query(numEventsQuery, function(err, rows) {
-                var numPages = Math.ceil(rows[0].numEvents / perPage);
+            var params = date != null ? [date] : [];
+            database.query(eventsQuery, params, function(err, rows) {
+                var numEvents = rows.length;
+                var numPages = Math.ceil(numEvents / perPage);
                 callback(err, numPages);
             });
         },
         function getEventsForPage(numPages, callback) {
-            var eventsQuery =
-                'SELECT * \
-                 FROM event \
-                 ORDER BY startTime DESC \
-                 LIMIT ? OFFSET ?';
-            database.query(eventsQuery, [perPage, currentPage * perPage],
+            var params = [perPage, currentPage * perPage];
+            if (date != null) { params.unshift(date); }
+            console.log(params);
+            var eventsForPageQuery = eventsQuery.concat(
+            ' ORDER BY startTime DESC LIMIT ? OFFSET ?');
+            database.query(eventsForPageQuery, params,
                            function(err, rows) {
                 callback(err, rows, numPages);
             });
