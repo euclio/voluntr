@@ -23,7 +23,7 @@ CREATE TABLE skill (skillID INT NOT NULL AUTO_INCREMENT,
 
 CREATE TABLE review (reviewID INT NOT NULL AUTO_INCREMENT,
                     rating INT NOT NULL,
-                    CONSTRAINT rating CHECK (rating IN (1, 2, 3, 4)),
+                    CONSTRAINT rating CHECK (rating IN (1, 2, 3, 4, 5)),
                     comment VARCHAR(300),
                     PRIMARY KEY (reviewID));
 
