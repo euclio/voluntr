@@ -33,7 +33,38 @@ exports.index = function(req, res) {
         else { keywordQuery = keywordQuery.concat(')')}
     }
 
-    var eventsQuery = 'SELECT * FROM event WHERE true' + dateQuery + keywordQuery;
+    // The filter is different depending on whether the user is a coordinator
+    // or a volunteer. A coordinator will only see events that they created. A
+    // volunteer will only see events that match with them.
+    var filteringQuery = '';
+    if (req.query.which === 'user' && req.user.role === 'volunteer') {
+        filteringQuery =
+            'AND event.eventID IN( ' +
+                'SELECT e.eventID ' +
+                'FROM event AS e ' +
+                'WHERE( ' +
+                    'SELECT COUNT(*) ' +
+                    'FROM request AS r, indicate AS i ' +
+                    'WHERE r.eventID = e.eventID ' +
+                        ' AND i.userID = ' + mysql.escape(req.user.userID) +
+                        ' AND r.skillID = i.skillID) > 1 ' +
+                    'AND EXISTS( ' +
+                        'SELECT * ' +
+                        'FROM specifies_time_available AS sta, time_slot AS ts ' +
+                        'WHERE ts.eventID = e.eventID ' +
+                            ' AND sta.userID = ' + mysql.escape(req.user.userID) +
+                            ' AND TIME(ts.startTime) = TIME(sta.startTime)' +
+                            ' AND DAYOFWEEK(ts.startTime) = sta.dayOfWeek))';
+    } else if (req.query.which === 'user' && req.user.role === 'coordinator') {
+        filteringQuery =
+            'AND EXISTS( ' +
+                 'SELECT * ' +
+                 'FROM organize ' +
+                 'WHERE organize.userID = ' + mysql.escape(req.user.userID) +
+                 ')';
+    }
+
+    var eventsQuery = 'SELECT * FROM event WHERE true ' + dateQuery + keywordQuery + filteringQuery;
 
     // Get the page we are on, 0-indexed
     var currentPage = (req.param('page') > 0 ? req.param('page') : 1) - 1;
@@ -45,15 +76,18 @@ exports.index = function(req, res) {
         function getNumberOfPages(callback) {
             var params = date != null ? [date] : [];
             database.query(eventsQuery, params, function(err, rows) {
-                var numEvents = rows.length;
-                var numPages = Math.ceil(numEvents / perPage);
-                callback(err, numPages);
+                if (rows) {
+                    var numEvents = rows.length;
+                    var numPages = Math.ceil(numEvents / perPage);
+                    callback(err, numPages);
+                } else {
+                    callback(err, 0);
+                }
             });
         },
         function getEventsForPage(numPages, callback) {
             var params = [perPage, currentPage * perPage];
             if (date != null) { params.unshift(date); }
-            console.log(params);
             var eventsForPageQuery = eventsQuery.concat(
             ' ORDER BY startTime DESC LIMIT ? OFFSET ?');
             database.query(eventsForPageQuery, params,

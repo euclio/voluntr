@@ -36,6 +36,8 @@
             <small>{{ moment(event.startTime).format('hh:mma, MMMM DD') }} &mdash; {{ moment(event.endTime).format('hh:mma, MMMM DD') }}</small>
           </div>
         </li>
+      {% else %}
+        <p>Sorry, no events match your filter. Please revise your search.</p>
       {% endfor %}
     </ul>
     <nav>
