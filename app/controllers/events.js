@@ -53,7 +53,7 @@ exports.index = function(req, res) {
                         'FROM specifies_time_available AS sta, time_slot AS ts ' +
                         'WHERE ts.eventID = e.eventID ' +
                             ' AND sta.userID = ' + mysql.escape(req.user.userID) +
-                            ' AND TIME(ts.startTime) = TIME(sta.startTime)' +
+                            ' AND TIME(ts.startTime) = sta.startTime' +
                             ' AND DAYOFWEEK(ts.startTime) = sta.dayOfWeek))';
     } else if (req.query.which === 'user' && req.user.role === 'coordinator') {
         filteringQuery =
