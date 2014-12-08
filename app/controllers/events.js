@@ -207,7 +207,11 @@ exports.page = function(req, res) {
     async.parallel({
         event: function(callback) {
             var getEventQuery =
-                'SELECT * FROM event WHERE eventID = ? LIMIT 1';
+                'SELECT * \
+                 FROM event, organize \
+                 WHERE event.eventID = ? \
+                     AND organize.eventID = event.eventID \
+                 LIMIT 1';
             database.query(getEventQuery, req.params.eventID,
                            function(err, rows) {
                 callback(err, rows[0]);

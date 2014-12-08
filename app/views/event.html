@@ -25,29 +25,34 @@
     </div>
   </div>
   {% if user.role == 'volunteer' %}
-    {# Only volunteers are allowed to register for events #}
-    <form action="/events/{{ event.eventID }}/register" method="post">
-      <div class="form-group">
-        <label for="timeslot">Event Registration</label>
-        <table class="matrix registrationMatrix">
-          <thead>
-            <tr>
-              {% for timeslot in timeslots %}
-                <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              {% for timeslot in timeslots %}
-                <td data-timestamp="{{ timeslot.startTime }}" {% if timeslot.selected %}class="selected"{% endif %}>{{ timeslot.num_confirmed }}/{{ timeslot.num_needed }}</td>
-              {% endfor %}
-            </tr>
-        </table>
-      </div>
-      <button type="submit" class="btn btn-primary">Register</button>
-    </form>
-    <small>Note: The numbers within each cell indicate how many slots have been assigned to volunteers. You may register for slots that are full, but please note that you are less likely to be assigned to those slots.</small>
+    {% if moment().isBefore(event.endTime) %}
+      {# Only volunteers are allowed to register for events #}
+      <form action="/events/{{ event.eventID }}/register" method="post">
+        <div class="form-group">
+          <label for="timeslot">Event Registration</label>
+          <table class="matrix registrationMatrix">
+            <thead>
+              <tr>
+                {% for timeslot in timeslots %}
+                  <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {% for timeslot in timeslots %}
+                  <td data-timestamp="{{ timeslot.startTime }}" {% if timeslot.selected %}class="selected"{% endif %}>{{ timeslot.num_confirmed }}/{{ timeslot.num_needed }}</td>
+                {% endfor %}
+              </tr>
+          </table>
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+      </form>
+      <small>Note: The numbers within each cell indicate how many slots have been assigned to volunteers. You may register for slots that are full, but please note that you are less likely to be assigned to those slots.</small>
+    {% else %}
+      <h3>Event Finished</h3>
+      <p>This event has already ended, but your coordinator would love to hear your feedback. Please write a review of your coordinator <a href="/rate/{{ event.userID }}">here</a>.</p>
+    {% endif %}
   {% else %}
     <div class="container">
       <form action="/events/{{ event.eventID }}/assign" method="post">
