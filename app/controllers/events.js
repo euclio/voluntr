@@ -98,6 +98,16 @@ exports.create = function(req, res) {
             },
             function insertSkillsAndTimes(eventID, callback) {
                 async.parallel([
+                    function insertOrganizer(callback) {
+                        var insertOrganizerQuery =
+                            'INSERT INTO organize \
+                             (userID, eventID) \
+                             VALUES (?, ?)';
+                        database.query(insertOrganizerQuery, [req.user.userID, eventID],
+                            function(err, dbRes) {
+                                callback(err);
+                            })
+                    },
                     function createSkillRequests(callback) {
                         // If we have no skills required for this event, then we're
                         // done.
