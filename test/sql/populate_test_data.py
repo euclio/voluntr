@@ -48,6 +48,15 @@ def generate_skills():
     return [(skill,) for skill in skills]
 
 
+def insert_event(cursor, event, organizerID):
+    cursor.execute('INSERT INTO event VALUES (NULL, %s, %s, %s, %s, %s)',
+                   event)
+    eventID = cursor.lastrowid
+    cursor.execute('INSERT INTO organize VALUES (%s, %s)',
+                   (organizerID, eventID))
+    return eventID
+
+
 def insert_test_data(connection):
     cursor = connection.cursor(buffered=True)
     cursor.execute('DELETE FROM indicate')
@@ -63,9 +72,9 @@ def insert_test_data(connection):
 
     #testing event
     events = generate_events(300)
-    cursor.executemany('INSERT INTO event VALUES (NULL, %s, %s, %s, %s, %s)',
-                       events)
-    
+    for event in events:
+        insert_event(cursor, event, 2)
+
     half_hour = timedelta(minutes=30)
     multi_day = timedelta(days=2)
     #class datetime.timedelta([days[, seconds[, microseconds[, milliseconds[, minutes[, hours[, weeks]]]]]]])
@@ -74,23 +83,25 @@ def insert_test_data(connection):
     # datetime.time(['year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond'])
 
     #test for 30 min event
-    cursor.execute("INSERT INTO event (eventID, title, description, location, startTime, endTime) "
-                   "VALUES (NULL, %s, %s, %s, %s, %s)",
-                   ('30_mins_event', 'We do magical things in this event',
-                    'Somewhere in California', start_event1,
-                    start_event1 + half_hour))
+    eventID = insert_event(cursor,
+                           ('30_mins_event',
+                            'We do magical things in this event',
+                            'Somewhere in California', start_event1,
+                            start_event1 + half_hour),
+                           2)
 
     #test time_slot
     cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
                    "VALUES (%s, %s, %s, %s)",
-                   (cursor.lastrowid, start_event1, 5, 2))
+                   (eventID, start_event1, 5, 2))
 
     #test for a multi-day event
-    cursor.execute("INSERT INTO event (eventID, title, description, location, startTime, endTime) "
-                   "VALUES (NULL, %s, %s, %s, %s, %s)",
-                   ('multiDay_event', 'We do coding things in this event',
-                    'Somewhere in Washington', start_event1,
-                    start_event1 + multi_day))
+    insert_event(cursor,
+                 ('multiDay_event',
+                  'We do coding things in this event',
+                  'Somewhere in Washington', start_event1,
+                  start_event1 + multi_day),
+                 2)
 
     #testing skill
     skills = generate_skills()
