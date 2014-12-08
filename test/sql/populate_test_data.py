@@ -79,17 +79,18 @@ def insert_test_data(connection):
                    ('30_mins_event', 'We do magical things in this event',
                     'Somewhere in California', start_event1,
                     start_event1 + half_hour))
+
+    #test time_slot
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
+                   "VALUES (%s, %s, %s, %s)",
+                   (cursor.lastrowid, start_event1, 5, 2))
+
     #test for a multi-day event
     cursor.execute("INSERT INTO event (eventID, title, description, location, startTime, endTime) "
                    "VALUES (NULL, %s, %s, %s, %s, %s)",
                    ('multiDay_event', 'We do coding things in this event',
                     'Somewhere in Washington', start_event1,
                     start_event1 + multi_day))
-
-    #test time_slot
-    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
-                   "VALUES (%s, %s, %s, %s)",
-                   (cursor.lastrowid, start_event1, 5, 2))
 
     #testing skill
     skills = generate_skills()
