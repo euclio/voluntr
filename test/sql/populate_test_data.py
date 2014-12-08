@@ -81,6 +81,10 @@ def insert_test_data(connection):
     
     start_event1 = datetime(2014, 12, 15, 18, 30)
     # datetime.time(['year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond'])
+    #
+    #testing skill
+    skills = generate_skills()
+    cursor.executemany('INSERT INTO skill VALUES (NULL, %s)', skills)
 
     #test for 30 min event
     eventID = insert_event(cursor,
@@ -95,6 +99,14 @@ def insert_test_data(connection):
                    "VALUES (%s, %s, %s, %s)",
                    (eventID, start_event1, 5, 2))
 
+    #test skills
+    cursor.executemany('INSERT INTO request VALUES(%s, %s)', [
+                       (eventID, 1),
+                       (eventID, 2),
+                       (eventID, 3),
+                       (eventID, 4),
+                       (eventID, 5)])
+
     #test for a multi-day event
     insert_event(cursor,
                  ('multiDay_event',
@@ -103,12 +115,13 @@ def insert_test_data(connection):
                   start_event1 + multi_day),
                  2)
 
-    #testing skill
-    skills = generate_skills()
-    cursor.executemany('INSERT INTO skill VALUES (NULL, %s)', skills)
 
 
     #test indicate skill
+    cursor.execute("INSERT INTO indicate (userID, skillID)"
+                   "VALUES (%s, %s)", (1, 1))
+    cursor.execute("INSERT INTO indicate (userID, skillID)"
+                   "VALUES (%s, %s)", (1, 2))
     cursor.execute("INSERT INTO indicate (userID, skillID)"
                    "VALUES (%s, %s)", (1, 3))
     cursor.execute("INSERT INTO indicate (userID, skillID)"
