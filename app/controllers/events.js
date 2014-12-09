@@ -61,6 +61,7 @@ exports.index = function(req, res) {
                  'SELECT * ' +
                  'FROM organize ' +
                  'WHERE organize.userID = ' + mysql.escape(req.user.userID) +
+                    ' AND organize.eventID = event.eventID' +
                  ')';
     }
 
