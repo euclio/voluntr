@@ -98,9 +98,9 @@ def insert_test_data(connection):
                            2)
 
     #test time_slot
-    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
-                   "VALUES (%s, %s, %s, %s)",
-                   (eventID, start_event1, 5, 0))
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed)"
+                   "VALUES (%s, %s, %s)",
+                   (eventID, start_event1, 5))
 
     #test skills
     cursor.executemany('INSERT INTO request VALUES(%s, %s)', [
@@ -140,7 +140,7 @@ def insert_test_data(connection):
         'Come out and garden in the village! The is land near the library that has been disused for some time and we would like to plan a small vegetable garden! The time of this is weather dependent, so keep an eye out for changes and updates!',
         'Claremont, CA',
         start_event1,
-        start_event1 + 5(half_hour)),
+        start_event1 + 5 * (half_hour)),
       2)
     
     cursor.execute("INSERT INTO request (eventID, skillID)"
@@ -153,7 +153,7 @@ def insert_test_data(connection):
         'Our senior citizens need your help this holday season! We have activities planned all day and need volunteers who are patient and truly enjoy spending time with the elderly.',
         'Claremont Senior Center',
         start_event1,
-        start_event1 + 10(half_hour)),
+        start_event1 + 10 * (half_hour)),
       2)
 
     cursor.execute("INSERT INTO request (eventID, skillID)"

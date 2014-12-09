@@ -284,14 +284,20 @@ exports.page = function(req, res) {
             if (req.user.role === 'volunteer') {
                 // If the user is a volunteer, we want to return all possible
                 // timeslots for an event, and whether the current user is
-                // registered for that event or not.
+                // registered for that event or not. We also want to return how
+                // many people are assigned to a given timeslot.
                 getTimeslotsQuery =
                     'SELECT *, EXISTS( \
                         SELECT * \
                         FROM registers_for AS rf \
                         WHERE rf.eventID = ts.eventID \
                             AND rf.userID = ? \
-                            AND rf.startTime = ts.startTime) AS selected \
+                            AND rf.startTime = ts.startTime) AS selected, ( \
+                        SELECT COUNT(*) \
+                        FROM registers_for AS rf \
+                        WHERE rf.eventID = ts.eventID \
+                            AND rf.startTime = ts.startTime \
+                            AND rf.assigned) AS numAssigned \
                      FROM time_slot AS ts \
                      WHERE ts.eventID = ?';
                 params = [req.user.userID, req.params.eventID];

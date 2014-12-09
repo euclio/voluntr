@@ -30,7 +30,6 @@ CREATE TABLE review (reviewID INT NOT NULL AUTO_INCREMENT,
 CREATE TABLE time_slot (eventID INT NOT NULL,
                     startTime DATETIME NOT NULL,
                     num_needed INT NOT NULL,
-                    num_confirmed INT,
                     PRIMARY KEY (eventID, startTime),
                     FOREIGN KEY (eventID) REFERENCES event(eventID));
 

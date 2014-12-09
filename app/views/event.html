@@ -41,7 +41,7 @@
             <tbody>
               <tr>
                 {% for timeslot in timeslots %}
-                  <td data-timestamp="{{ timeslot.startTime }}" {% if timeslot.selected %}class="selected"{% endif %}>{{ timeslot.num_confirmed }}/{{ timeslot.num_needed }}</td>
+                  <td data-timestamp="{{ timeslot.startTime }}" {% if timeslot.selected %}class="selected"{% endif %}>{{ timeslot.numAssigned }}/{{ timeslot.num_needed }}</td>
                 {% endfor %}
               </tr>
           </table>
