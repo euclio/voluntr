@@ -374,8 +374,6 @@ exports.page = function(req, res) {
         }
     }, function(err, results) {
         if (err) { throw err; }
-        console.log(results);
-        console.log(results.timeslots.timeslots[1]);
         res.render('event', {
             event: results.event,
             userInfo: results.timeslots.users,
