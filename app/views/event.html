@@ -58,26 +58,23 @@
       <form action="/events/{{ event.eventID }}/assign" method="post">
         <div class="form-group">
           <label for="registration">Timeslot Assignments</label>
-          {% if timeslots.length > 0 %}
+          {% if numTimeslots > 0 %}
             <table class="matrix assignmentMatrix">
               <thead>
                 <tr>
                   <td>Volunteer</td>
-                  {% for timeslot in timeslots.slice(0, numTimeslots) %}
+                  {% for timeslot in eventTimeslots %}
                     <td>{{ moment(timeslot.startTime).format('h:mmA') }}</td>
                   {% endfor %}
                 </tr>
               </thead>
               <tbody>
-                {% for userTimeslots in timeslots|batch(numTimeslots) %}
+                {% for userID in users %}
                   <tr>
-                  {% for timeslot in userTimeslots %}
-                    {% if loop.index == 1 %}
-                      {% set firstTimeslot = userTimeslots|first %}
-                      <td>{{ firstTimeslot.name }}</td>
-                    {% endif %}
-                    <td data-timeslot="{{ timeslot.startTime }}" data-user="{{ timeslot.userID }}">{% if timeslot.assigned != null %}<input type="checkbox" name="registration" {% if timeslot.assigned %}checked{% endif %}>{% endif %}</td>
-                  {% endfor %}
+                    <td>{{ userInfo[userID].name }}</td>
+                    {% for timeslot in timeslots[userID] %}
+                      <td data-timeslot="{{ timeslot.startTime }}" data-user="{{ userID }}">{% if timeslot.registered %}<input type="checkbox" name="registration" {% if timeslot.assigned %}checked{% endif %}>{% endif %}</td>
+                    {% endfor %}
                   </tr>
                 {% endfor %}
               </tbody>
@@ -86,7 +83,7 @@
           <p>Sorry, no volunteers have registered for your event yet.</p>
           {% endif %}
         </div>
-        {% if timeslots.length > 0 %}
+        {% if numTimeslots > 0 %}
           <button type="submit" class="btn btn-primary">Assign</button>
         {% endif %}
       </form>

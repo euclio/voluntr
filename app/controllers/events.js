@@ -27,8 +27,9 @@ exports.index = function(req, res) {
     var keywordQuery = '';
     for (var i = 0; i < keywordArr.length; i++) {
         if (i==0) { keywordQuery = keywordQuery.concat(' AND ('); }
-        var keyword = keywordArr[i];
-        keywordQuery = keywordQuery.concat('description LIKE "' + keyword + '"');
+        var keyword = mysql.escape('%' + keywordArr[i] + '%');
+        keywordQuery = keywordQuery.concat('description LIKE ' + keyword);
+        keywordQuery = keywordQuery.concat(' OR title LIKE ' + keyword);
         if (i != keywordArr.length-1) { keywordQuery = keywordQuery.concat(' OR ')}
         else { keywordQuery = keywordQuery.concat(')')}
     }
@@ -66,6 +67,7 @@ exports.index = function(req, res) {
     }
 
     var eventsQuery = 'SELECT * FROM event WHERE true ' + dateQuery + keywordQuery + filteringQuery;
+    console.log(eventsQuery);
 
     // Get the page we are on, 0-indexed
     var currentPage = (req.param('page') > 0 ? req.param('page') : 1) - 1;
@@ -121,7 +123,8 @@ exports.create = function(req, res) {
     forms.addEventForm.handle(req, {
         success: createEvent,
         other: function(form) {
-            res.redirect('/events/add');
+            req.flash('error', 'Invalid form data.');
+            return res.redirect('/events/add');
         }
     });
 
@@ -301,51 +304,86 @@ exports.page = function(req, res) {
                      FROM time_slot AS ts \
                      WHERE ts.eventID = ?';
                 params = [req.user.userID, req.params.eventID];
+                database.query(getTimeslotsQuery, params, function(err, rows) {
+                    callback(err, rows);
+                });
             } else {
-                // If the user is a coordinator, we want to return all the
-                // timeslots for each user who has registered for at least one
-                // timeslot. We also return a field 'assigned' that is
-                //      1) null - when the user did not register for that slot
-                //      2) false - when the coordinator has not assigned that
-                //                 slot
-                //      3) true - when the coordinator assigned that slot.
-                getTimeslotsQuery =
-                    'SELECT u.*, ts.*, (\
-                        SELECT assigned \
-                        FROM registers_for AS rf2 \
-                        WHERE rf2.eventID = ts.eventID \
-                            AND rf2.startTime = ts.startTime) AS assigned \
-                     FROM time_slot AS ts, user AS u \
-                     WHERE ts.eventID = ? \
-                        AND EXISTS( \
-                            SELECT * \
-                            FROM registers_for AS rf1 \
-                            WHERE rf1.userID = u.userID \
-                                AND rf1.eventID = ts.eventID)';
-                params = [req.params.eventID];
+                async.waterfall([
+                    function getUsers(callback) {
+                        var getUsersQuery =
+                            'SELECT u.* \
+                             FROM registers_for AS rf, user AS u \
+                             WHERE rf.eventID = ? \
+                                AND u.userID = rf.userID';
+                        database.query(getUsersQuery, [req.params.eventID],
+                                       function(err, rows) {
+                            callback(err, rows);
+                        });
+                    },
+                    function getTimeslots(users, callback) {
+                        console.log(users);
+                        var info = {
+                            'users': {},
+                            'timeslots': {}
+                        };
+                        async.each(users, function(user, callback) {
+                            if (!info.timeslots[user.userID]) {
+                                info.timeslots[user.userID] = [];
+                            }
+                            if (!info.users[user.userID]) {
+                                info.users[user.userID] = user;
+                            }
+                            var getTimeslotsQuery =
+                                'SELECT ts.*, EXISTS( \
+                                    SELECT * \
+                                    FROM registers_for AS rf \
+                                    WHERE rf.userID = ? \
+                                        AND ts.eventID = rf.eventID \
+                                        AND ts.startTime = rf.startTime) AS registered, \
+                                    (SELECT rf2.assigned \
+                                     FROM registers_for AS rf2 \
+                                     WHERE rf2.eventID = ts.eventID \
+                                        AND ts.startTime = rf2.startTime \
+                                        AND rf2.userID = ?) AS assigned \
+                                 FROM time_slot AS ts \
+                                    WHERE ts.eventID = ? \
+                                 ORDER BY ts.startTime';
+                            var params = [user.userID, user.userID, req.params.eventID];
+                            database.query(getTimeslotsQuery, params,
+                                           function(err, rows) {
+                                info.timeslots[user.userID] = rows;
+                                callback(err);
+                            });
+                        }, function(err) {
+                            callback(err, info);
+                        });
+                    }], function(err, info) {
+                        callback(err, info);
+                    });
             }
-
-            database.query(getTimeslotsQuery, params, function(err, rows) {
-                callback(err, rows);
-            });
         },
-        numTimeslots: function(callback) {
-            var numTimeslotsQuery =
-                'SELECT COUNT(startTime) AS numTimeslots \
+        eventTimeslots: function(callback) {
+            var eventTimeslotsQuery =
+                'SELECT * \
                  FROM time_slot \
                  WHERE eventID = ?';
-            database.query(numTimeslotsQuery, [req.params.eventID],
+            database.query(eventTimeslotsQuery, [req.params.eventID],
                            function(err, rows) {
-                callback(err, rows[0].numTimeslots);
+                callback(err, rows);
             });
         }
     }, function(err, results) {
         if (err) { throw err; }
+        console.log(results);
+        console.log(results.timeslots.timeslots[1]);
         res.render('event', {
             event: results.event,
-            timeslots: results.timeslots,
-            numTimeslots: results.numTimeslots,
-            moment: moment
+            userInfo: results.timeslots.users,
+            timeslots: results.timeslots.timeslots,
+            eventTimeslots: results.eventTimeslots,
+            moment: moment,
+            numTimeslots: Object.keys(results.timeslots.timeslots).length,
+            users: Object.keys(results.timeslots.users)
         });
     });
 };
