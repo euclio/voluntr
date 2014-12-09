@@ -27,8 +27,9 @@ exports.index = function(req, res) {
     var keywordQuery = '';
     for (var i = 0; i < keywordArr.length; i++) {
         if (i==0) { keywordQuery = keywordQuery.concat(' AND ('); }
-        var keyword = keywordArr[i];
-        keywordQuery = keywordQuery.concat('description LIKE "' + keyword + '"');
+        var keyword = mysql.escape('%' + keywordArr[i] + '%');
+        keywordQuery = keywordQuery.concat('description LIKE ' + keyword);
+        keywordQuery = keywordQuery.concat(' OR title LIKE ' + keyword);
         if (i != keywordArr.length-1) { keywordQuery = keywordQuery.concat(' OR ')}
         else { keywordQuery = keywordQuery.concat(')')}
     }
@@ -66,6 +67,7 @@ exports.index = function(req, res) {
     }
 
     var eventsQuery = 'SELECT * FROM event WHERE true ' + dateQuery + keywordQuery + filteringQuery;
+    console.log(eventsQuery);
 
     // Get the page we are on, 0-indexed
     var currentPage = (req.param('page') > 0 ? req.param('page') : 1) - 1;
