@@ -30,20 +30,20 @@ def generate_events(num_events):
 
 def generate_skills():
     skills = [
-        'First Aid',
-        'Children',
-        'Animals',
-        'Programming',
-        'Cooking',
-        'Sales',
-        'Arts and Crafts',
-        'Foreign Language',
-        'Gardening',
-        'Reading',
-        'Building/Construction',
-        'Music',
-        'Seniors',
-        
+        'First Aid', #0
+        'Children', #1
+        'Animals', #2 
+        'Programming', #3 
+        'Cooking', #4
+        'Sales', #5
+        'Arts and Crafts', #6
+        'Foreign Language', #7
+        'Gardening', #8
+        'Reading', #9 
+        'Building/Construction', #10
+        'Music', #11
+        'Seniors', #12
+        'Teaching/Mentoring' #13
         #add additional skills
     ]
 
@@ -82,6 +82,7 @@ def insert_test_data(connection):
     #class datetime.timedelta([days[, seconds[, microseconds[, milliseconds[, minutes[, hours[, weeks]]]]]]])
     
     start_event1 = datetime(2014, 12, 15, 18, 30)
+    start_event2 = datetime(2014, 12, 13, 9, 00)
     # datetime.time(['year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond'])
     #
     #testing skill
@@ -115,9 +116,9 @@ def insert_test_data(connection):
                   'We do coding things in this event',
                   'Somewhere in Washington', start_event1,
                   start_event1 + multi_day),
-                 2)
+                 1)
 
-    
+    #test for event with 2 skills
     insert_event(cursor,
       ('Help Tutor High School Students!', 
       'We would appreciate volunteer help with tutoring Claremont High students in the math and sciences. We will meet on Friday afternoons after school lets out. Subjects include geometry, algebra, calculus, statistics, biology, chemistry, phyisics. Thank you in advance!',
@@ -126,7 +127,14 @@ def insert_test_data(connection):
       start_event1 + half_hour + half_hour + half_hour),
       2)
 
+    cursor.execute("INSERT INTO request (eventID, skillID)"
+                   "VALUES (%s, %s)",
+                   (eventID, 13))
+    cursor.execute("INSERT INTO request (eventID, skillID)"
+                   "VALUES (%s, %s)",
+                   (eventID, 1))
 
+    #test for event with 1 skill
     insert_event(cursor,
       ('Gardening in the Village',
         'Come out and garden in the village! The is land near the library that has been disused for some time and we would like to plan a small vegetable garden! The time of this is weather dependent, so keep an eye out for changes and updates!',
@@ -134,7 +142,12 @@ def insert_test_data(connection):
         start_event1,
         start_event1 + 5(half_hour)),
       2)
+    
+    cursor.execute("INSERT INTO request (eventID, skillID)"
+                   "VALUES (%s, %s)",
+                   (eventID, 8))
 
+    #test for event with 2 skills
     insert_event(cursor,
       ('Help our Senior Citizens!',
         'Our senior citizens need your help this holday season! We have activities planned all day and need volunteers who are patient and truly enjoy spending time with the elderly.',
@@ -142,6 +155,60 @@ def insert_test_data(connection):
         start_event1,
         start_event1 + 10(half_hour)),
       2)
+
+    cursor.execute("INSERT INTO request (eventID, skillID)"
+                   "VALUES (%s, %s)",
+                   (eventID, 9))
+
+    cursor.execute("INSERT INTO request (eventID, skillID)"
+                   "VALUES (%s, %s)",
+                   (eventID, 12))
+
+    #test for event with 3 skills and 5 time slots
+    insert_event(cursor,
+      ('Teach Kids How to Code!', 
+      'We are looking for volunteers to help with teaching Claremont Elementary School students how to code in one of the following languages: Python, Java, C++. We will meet on Saturday morning. Thank you in advance!',
+      'Claremont High School, Claremont CA', 
+      start_event2, 
+      start_event2 + 5(half_hour)),
+      1)
+
+    cursor.execute("INSERT INTO request (eventID, skillID)"
+                   "VALUES (%s, %s)",
+                   (eventID, 1))
+
+    cursor.execute("INSERT INTO request (eventID, skillID)"
+                   "VALUES (%s, %s)",
+                   (eventID, 3))
+
+    cursor.execute("INSERT INTO request (eventID, skillID)"
+                   "VALUES (%s, %s)",
+                   (eventID, 12))
+    
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
+                   "VALUES (%s, %s, %s, %s)",
+                   (eventID, start_event2, 5, 2))
+    
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
+                   "VALUES (%s, %s, %s, %s)",
+                   (eventID, start_event2 + half_hour, 5, 2))
+
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
+                   "VALUES (%s, %s, %s, %s)",
+                   (eventID, start_event2 + 2(half_hour), 5, 2))
+
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
+                   "VALUES (%s, %s, %s, %s)",
+                   (eventID, start_event2 + 3(half_hour), 5, 2))
+
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
+                   "VALUES (%s, %s, %s, %s)",
+                   (eventID, start_event2 + 4(half_hour), 5, 2))
+
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
+                   "VALUES (%s, %s, %s, %s)",
+                   (eventID, start_event2 + 5(half_hour), 5, 2))
+
 
 
     #test indicate skill
@@ -153,6 +220,7 @@ def insert_test_data(connection):
                    "VALUES (%s, %s)", (1, 3))
     cursor.execute("INSERT INTO indicate (userID, skillID)"
                    "VALUES (%s, %s)", (2, 1))
+        
 
 
 
