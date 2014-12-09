@@ -115,8 +115,8 @@ def insert_test_data(connection):
 
     #test for a multi-day event
     insert_event(cursor,
-                 ('multiDay_event',
-                  'We do coding things in this event',
+                 ('Camping Trip to Learn Code',
+                  'We are going out camping and learning coding things in this event',
                   'Somewhere in Washington', start_event1,
                   start_event1 + multi_day),
                  1)
