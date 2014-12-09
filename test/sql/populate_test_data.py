@@ -41,7 +41,9 @@ def generate_skills():
         'Gardening',
         'Reading',
         'Building/Construction',
-        'Music'
+        'Music',
+        'Seniors',
+        
         #add additional skills
     ]
 
@@ -115,6 +117,31 @@ def insert_test_data(connection):
                   start_event1 + multi_day),
                  2)
 
+    
+    insert_event(cursor,
+      ('Help Tutor High School Students!', 
+      'We would appreciate volunteer help with tutoring Claremont High students in the math and sciences. We will meet on Friday afternoons after school lets out. Subjects include geometry, algebra, calculus, statistics, biology, chemistry, phyisics. Thank you in advance!',
+      'Claremont High School, Claremont CA', 
+      start_event1, 
+      start_event1 + half_hour + half_hour + half_hour),
+      2)
+
+
+    insert_event(cursor,
+      ('Gardening in the Village',
+        'Come out and garden in the village! The is land near the library that has been disused for some time and we would like to plan a small vegetable garden! The time of this is weather dependent, so keep an eye out for changes and updates!',
+        'Claremont, CA',
+        start_event1,
+        start_event1 + 5(half_hour)),
+      2)
+
+    insert_event(cursor,
+      ('Help our Senior Citizens!',
+        'Our senior citizens need your help this holday season! We have activities planned all day and need volunteers who are patient and truly enjoy spending time with the elderly.',
+        'Claremont Senior Center',
+        start_event1,
+        start_event1 + 10(half_hour)),
+      2)
 
 
     #test indicate skill
