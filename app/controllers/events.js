@@ -377,7 +377,7 @@ exports.page = function(req, res) {
         res.render('event', {
             event: results.event,
             userInfo: results.timeslots.users,
-            timeslots: results.timeslots.timeslots,
+            timeslots: req.user.role === 'volunteer' ? results.timeslots : results.timeslots.timeslots,
             eventTimeslots: results.eventTimeslots,
             moment: moment,
             numTimeslots: req.user.role === 'coordinator' ? Object.keys(results.timeslots.timeslots).length : null,
