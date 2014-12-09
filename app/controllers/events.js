@@ -382,8 +382,8 @@ exports.page = function(req, res) {
             timeslots: results.timeslots.timeslots,
             eventTimeslots: results.eventTimeslots,
             moment: moment,
-            numTimeslots: Object.keys(results.timeslots.timeslots).length,
-            users: Object.keys(results.timeslots.users)
+            numTimeslots: req.user.role === 'coordinator' ? Object.keys(results.timeslots.timeslots).length : null,
+            users: req.user.role === 'coordinator' ? Object.keys(results.timeslots.users) : null
         });
     });
 };
