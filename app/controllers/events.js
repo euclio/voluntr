@@ -194,12 +194,11 @@ exports.create = function(req, res) {
                         // Create a query to insert time slots, using question
                         // mark for the time slots.
                         var eventTimeSlots = times.map(function(time) {
-                            return '(' + eventID + ', ?,  ' +
-                                   num_needed + ', ' + 0 + ')';
+                            return '(' + eventID + ', ?, ' + num_needed + ')';
                         }).join();
                         var timeSlotsQuery =
                             'INSERT INTO time_slot \
-                             (eventID, startTime, num_needed, num_confirmed) \
+                             (eventID, startTime, num_needed) \
                              VALUES ' + eventTimeSlots;
                         database.query(timeSlotsQuery, times,
                                        function(err, dbRes) {
