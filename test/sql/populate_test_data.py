@@ -119,7 +119,7 @@ def insert_test_data(connection):
                  1)
 
     #test for event with 2 skills
-    insert_event(cursor,
+    eventID = insert_event(cursor,
       ('Help Tutor High School Students!', 
       'We would appreciate volunteer help with tutoring Claremont High students in the math and sciences. We will meet on Friday afternoons after school lets out. Subjects include geometry, algebra, calculus, statistics, biology, chemistry, phyisics. Thank you in advance!',
       'Claremont High School, Claremont CA', 
@@ -135,7 +135,7 @@ def insert_test_data(connection):
                    (eventID, 1))
 
     #test for event with 1 skill
-    insert_event(cursor,
+    eventID = insert_event(cursor,
       ('Gardening in the Village',
         'Come out and garden in the village! The is land near the library that has been disused for some time and we would like to plan a small vegetable garden! The time of this is weather dependent, so keep an eye out for changes and updates!',
         'Claremont, CA',
@@ -148,7 +148,7 @@ def insert_test_data(connection):
                    (eventID, 8))
 
     #test for event with 2 skills
-    insert_event(cursor,
+    eventID = insert_event(cursor,
       ('Help our Senior Citizens!',
         'Our senior citizens need your help this holday season! We have activities planned all day and need volunteers who are patient and truly enjoy spending time with the elderly.',
         'Claremont Senior Center',
@@ -165,12 +165,12 @@ def insert_test_data(connection):
                    (eventID, 12))
 
     #test for event with 3 skills and 5 time slots
-    insert_event(cursor,
+    eventID = insert_event(cursor,
       ('Teach Kids How to Code!', 
       'We are looking for volunteers to help with teaching Claremont Elementary School students how to code in one of the following languages: Python, Java, C++. We will meet on Saturday morning. Thank you in advance!',
       'Claremont High School, Claremont CA', 
       start_event2, 
-      start_event2 + 5(half_hour)),
+      start_event2 + 5 * (half_hour)),
       1)
 
     cursor.execute("INSERT INTO request (eventID, skillID)"
@@ -185,29 +185,29 @@ def insert_test_data(connection):
                    "VALUES (%s, %s)",
                    (eventID, 12))
     
-    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
-                   "VALUES (%s, %s, %s, %s)",
-                   (eventID, start_event2, 5, 2))
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed)"
+                   "VALUES (%s, %s, %s)",
+                   (eventID, start_event2, 5))
     
-    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
-                   "VALUES (%s, %s, %s, %s)",
-                   (eventID, start_event2 + half_hour, 5, 2))
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed)"
+                   "VALUES (%s, %s, %s)",
+                   (eventID, start_event2 + half_hour, 5))
 
-    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
-                   "VALUES (%s, %s, %s, %s)",
-                   (eventID, start_event2 + 2(half_hour), 5, 2))
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed)"
+                   "VALUES (%s, %s, %s)",
+                   (eventID, start_event2 + 2 * (half_hour), 5))
 
-    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
-                   "VALUES (%s, %s, %s, %s)",
-                   (eventID, start_event2 + 3(half_hour), 5, 2))
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed)"
+                   "VALUES (%s, %s, %s)",
+                   (eventID, start_event2 + 3 * (half_hour), 5))
 
-    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
-                   "VALUES (%s, %s, %s, %s)",
-                   (eventID, start_event2 + 4(half_hour), 5, 2))
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed)"
+                   "VALUES (%s, %s, %s)",
+                   (eventID, start_event2 + 4 * (half_hour), 5))
 
-    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
-                   "VALUES (%s, %s, %s, %s)",
-                   (eventID, start_event2 + 5(half_hour), 5, 2))
+    cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed)"
+                   "VALUES (%s, %s, %s)",
+                   (eventID, start_event2 + 5 * (half_hour), 5))
 
 
 
