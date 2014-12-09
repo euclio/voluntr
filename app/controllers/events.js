@@ -134,8 +134,9 @@ exports.create = function(req, res) {
             return res.redirect('/events/add');
         }
 
-        var start = moment(req.body.startTime, 'X').seconds(0);
-        var end = moment(req.body.endTime, 'X').seconds(0);
+        var dateFormat = 'YYYY/MM/DD HH:mm';
+        var start = moment(req.body.startTime, dateFormat).seconds(0);
+        var end = moment(req.body.endTime, dateFormat).seconds(0);
 
         if (!start.isBefore(end)) {
             req.flash("error", 'Start time must be before end time.');
