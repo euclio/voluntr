@@ -16,10 +16,13 @@ def generate_users(num_users):
     return [create_random_user(i) for i in range(num_users)]
 
 
+Adj_list = ['Cool', 'Awesome', 'Sweet', 'New', 'Excellent', 'Wonderful', 'Amazing', 'Super', 'Magnificent', 'Incredible']
+
+
 def generate_events(num_events):
     def create_random_event(i):
-        name = 'Event %d' % i
-        description = 'This event is awesome'
+        name = Adj_list[i%8]+' Event ' + '(' + str(i) + ')'
+        description = 'This event is ' + Adj_list[i%8] 
         location = 'Pomona College'
         start_time = datetime.now().replace(second=0, minute=30)
         end_time = start_time + timedelta(hours=3)
@@ -91,8 +94,8 @@ def insert_test_data(connection):
 
     #test for 30 min event
     eventID = insert_event(cursor,
-                           ('30_mins_event',
-                            'We do magical things in this event',
+                           ('Short and Sweet',
+                            'This is an awesome event -- it is also really short!',
                             'Somewhere in California', start_event1,
                             start_event1 + half_hour),
                            2)
