@@ -384,30 +384,44 @@ exports.register = function(req, res) {
 
 exports.assign = function(req, res) {
     var timeslotsByUser = JSON.parse(req.body.timeslots);
-    users = Object.keys(timeslotsByUser);
+    var users = Object.keys(timeslotsByUser);
     var eventID = req.params.eventID;
 
-    var registerUser = function(user, cb) {
+    function assignUser(user, callback) {
         var times = timeslotsByUser[user];
-        async.each(times,
-            function(time, callback) {
-                time = new Date(time);
-                var updateQuery =
-                'UPDATE registers_for \
-                    SET assigned = 1 \
-                WHERE userID = ? AND eventID = ? AND startTime = ?';
-                database.query(updateQuery, [user, eventID, time], function(err, dbRes) {
+
+        async.series([
+            function unassign(callback) {
+                var unassignQuery =
+                    'UPDATE registers_for \
+                        SET assigned = 0 \
+                     WHERE userID = ? AND eventID = ?';
+                database.query(unassignQuery, [user, eventID], function(err, dbRes) {
                     callback(err);
                 });
             },
-            function(err) {
-                cb(err);
+            function assignTimes(callback) {
+                async.each(times, function(time, callback) {
+                    time = new Date(time);
+                    var updateQuery =
+                    'UPDATE registers_for \
+                        SET assigned = 1 \
+                    WHERE userID = ? AND eventID = ? AND startTime = ?';
+                    database.query(updateQuery, [user, eventID, time], function(err, dbRes) {
+                        callback(err);
+                    });
+                },
+                function(err) {
+                    callback(err);
+                });
             }
-        );
-    };
+        ], function(err) {
+            callback(err);
+        });
+    }
 
-    async.map(users, registerUser, function(err, results) {
-        if (err) { throw err };
+    async.map(users, assignUser, function(err, results) {
+        if (err) { throw err; }
         req.flash('success', 'Successfully updated volunteer registration.');
         res.redirect('/events/' + eventID);
     });

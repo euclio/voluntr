@@ -6,12 +6,14 @@
         var timeslotsByUser = {};
 
         // Select all checked checkboxes.
-        $('.assignmentMatrix td:has(input:checked)').each(function(i, elt) {
+        $('.assignmentMatrix td:has(input)').each(function(i, elt) {
             var user = $(this).data('user');
             var timeslot = $(this).data('timeslot');
 
             if (!timeslotsByUser[user]) { timeslotsByUser[user] = []; }
-            timeslotsByUser[user].push(timeslot);
+            if ($('input', this).prop('checked')) {
+                timeslotsByUser[user].push(timeslot);
+            }
         });
 
         return timeslotsByUser;
