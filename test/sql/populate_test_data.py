@@ -99,7 +99,7 @@ def insert_test_data(connection):
     #test time_slot
     cursor.execute("INSERT INTO time_slot (eventID, startTime, num_needed, num_confirmed)"
                    "VALUES (%s, %s, %s, %s)",
-                   (eventID, start_event1, 5, 2))
+                   (eventID, start_event1, 5, 0))
 
     #test skills
     cursor.executemany('INSERT INTO request VALUES(%s, %s)', [
