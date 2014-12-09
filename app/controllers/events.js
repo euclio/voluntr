@@ -121,7 +121,8 @@ exports.create = function(req, res) {
     forms.addEventForm.handle(req, {
         success: createEvent,
         other: function(form) {
-            res.redirect('/events/add');
+            req.flash('error', 'Invalid form data.');
+            return res.redirect('/events/add');
         }
     });
 
