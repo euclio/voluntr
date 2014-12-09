@@ -396,24 +396,46 @@ exports.assign = function(req, res) {
     function assignUser(user, callback) {
         var times = timeslotsByUser[user];
 
-        async.series([
-            function unassign(callback) {
+        async.waterfall([
+            function userInfo(callback) {
+                database.query('SELECT * FROM user WHERE userID = ?',
+                               [user], function(err, rows) {
+                    callback(err, rows[0]);
+                });
+            },
+            function unassign(user, callback) {
                 var unassignQuery =
                     'UPDATE registers_for \
                         SET assigned = 0 \
                      WHERE userID = ? AND eventID = ?';
-                database.query(unassignQuery, [user, eventID], function(err, dbRes) {
-                    callback(err);
+                database.query(unassignQuery, [user.userID, eventID], function(err, dbRes) {
+                    callback(err, user);
                 });
             },
-            function assignTimes(callback) {
+            function assignTimes(user, callback) {
                 async.each(times, function(time, callback) {
                     time = new Date(time);
                     var updateQuery =
                     'UPDATE registers_for \
                         SET assigned = 1 \
                     WHERE userID = ? AND eventID = ? AND startTime = ?';
-                    database.query(updateQuery, [user, eventID, time], function(err, dbRes) {
+                    database.query(updateQuery, [user.userID, eventID, time], function(err, dbRes) {
+                        if (dbRes.affectedRows > 0) {
+                            var message =
+                                ('You\'ve been assigned to work at an event! ' +
+                                'Please go to <a href="{}">the event page' +
+                                '</a> for more information.')
+                                    .format('http://' + req.headers.host + '/events/' + eventID);
+
+                            var mailOptions = {
+                                from: 'nocontact@' + req.headers.host,
+                                to: user.email,
+                                subject: 'You\'ve been assigned!',
+                                html: message
+                            };
+                            console.log(mailOptions);
+                            transporter.sendMail(mailOptions);
+                        }
                         callback(err);
                     });
                 },
